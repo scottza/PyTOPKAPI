@@ -304,10 +304,10 @@ def Qout_computing2(V_t0,V_t1,b,alpha):
 
 def perc_prim(Vs0,Ks,eff_sat,c):
     """Computes the drainage from the upper to lower soil layer.
-    
+
     This function calculates the free drainage flux from the upper soil layer
     using the Brooks and Corey function Pr(\theta) = Ksat Se^c
-    
+
     Parameters
     ----------
     Vs0 : scalar
@@ -318,7 +318,7 @@ def perc_prim(Vs0,Ks,eff_sat,c):
         Effective saturation
     c : scalar
         Disconnectedness index, exponent of the Brooks and Corey funciton
-    
+
     Returns
     -------
     Pr_prim : scalar
@@ -332,15 +332,15 @@ def Qout_dam(Dt, WL_dam_avg, Qseep_mm, Vd0, Qc_in, ETo_t, A_dam):
     Computes the losses (Evaporation (E) and seepage) and the volume leaving
     the dam in case it is full to the downstream river cell.
     E and seepage losses are handled in a hirachial manner. If enough water
-    is available then E and seepage are at potential rate times the area of the 
+    is available then E and seepage are at potential rate times the area of the
     dam. If not then seepage losses take prevalence and E will be the remainder
     of water left in the dam until it is dry. Water is only passed on to the
     downstream river cell if the dam reaches FSL.
-    
+
     Parameters
     ----------
     Dt : scalar
-        Time step (seconds)    
+        Time step (seconds)
     WL_dam_avg : scalar
         Average water height in dam at full supply level (FSL)
     Qseep_mm : scalar
@@ -353,7 +353,7 @@ def Qout_dam(Dt, WL_dam_avg, Qseep_mm, Vd0, Qc_in, ETo_t, A_dam):
         Open water evaporation (mm/TMSP)
     A_dam : scalar
         Area of the dam (m2)
-    
+
     Returns
     -------
     Qd_out : scalar
@@ -362,11 +362,11 @@ def Qout_dam(Dt, WL_dam_avg, Qseep_mm, Vd0, Qc_in, ETo_t, A_dam):
         Volume of water in the dam at the end of the time step.
     """
 
-    ETo_d_pot  = ETo_t * 1e-3 * A_dam        # [m3]  
+    ETo_d_pot  = ETo_t * 1e-3 * A_dam        # [m3]
     Q_seep_pot = Qseep_mm * 1e-3 * A_dam     # [m3]
     Q_in       = Qc_in * Dt                  # [m3]
     Vd_max     = A_dam * WL_dam_avg          # [m3]
-    
+
     if Vd0 + Q_in > Q_seep_pot:
         Q_seep = Q_seep_pot
         if Vd0 + Q_in - Q_seep > ETo_d_pot:
@@ -388,9 +388,9 @@ def Qout_dam(Dt, WL_dam_avg, Qseep_mm, Vd0, Qc_in, ETo_t, A_dam):
     else:
         Qd_out = 0.
         Vd1    = 0.
-    
+
     Qd_out = Qd_out/Dt
-    
+
     return Qd_out, Vd1
 
 

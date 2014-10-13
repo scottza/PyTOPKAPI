@@ -287,12 +287,12 @@ def qas(a, b, alpha, V0, delta_t, cell, derivative=0):
         A=-b*beta0
         B=alpha0/beta0
         C=-a/(b*beta0)
-    
+
     y1=solution(A,B,C,y0,delta_t)
 
     try:
         if alpha > 2:
-            
+
             V1=y1**(1/(1-alpha))
         else:
             V1=y1

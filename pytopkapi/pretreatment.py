@@ -236,7 +236,7 @@ def read_cell_parameters_DL(file_name):
         (:math:`m^3/s`)
     ar_kc : (N,) float array
         The crop co-efficient for each cell
-        
+
     _____ Parameters for the deeper soil layer _____
     ar_L0_ : (N,) float array
         The depth of the soil store for the deeper layer(:math:`m`)
@@ -494,7 +494,7 @@ def compute_cell_param(X, ar_Xc, Dt, alpha_s, alpha_o,
     A_total=nb_cell*X**2
     ar_W = W_max + ((W_max-W_min)/(A_total**0.5-A_thres**0.5)) \
            * (ar_A_drained**0.5-A_total**0.5)
-    
+
     for c in xrange(len(ar_W)):
         if ar_W[c] < 0.:
             print 'ar_W = W_max +\n((W_max-W_min)/(A_total**0.5-A_thres**0.5))\n\
@@ -635,7 +635,7 @@ def compute_cell_param_DL(X, ar_Xc, Dt, alpha_s, alpha_o,
     A_total = nb_cell*X**2
     ar_W    = W_max + ((W_max-W_min)/(A_total**0.5-A_thres**0.5)) \
               * (ar_A_drained**0.5-A_total**0.5)
-    
+
     for c in xrange(len(ar_W)):
         if ar_W[c] < 0.:
             print 'ar_W = W_max +\n((W_max-W_min)/(A_total**0.5-A_thres**0.5))\n\

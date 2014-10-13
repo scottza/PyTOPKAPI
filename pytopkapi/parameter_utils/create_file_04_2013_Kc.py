@@ -169,7 +169,7 @@ def generate_param_file(ini_fname, isolated_cells=False):
     try:
         kc_ras_fname   = config.get('raster_files', 'kc_ras_fname')
     except NoOptionError:
-        KC             = 0    
+        KC             = 0
 #    try:
 #        brks_fname     = config.get('raster_files', 'brooks_lamda_fname')
 #    except NoOptionError:
@@ -186,7 +186,7 @@ def generate_param_file(ini_fname, isolated_cells=False):
 
 
     param_fname = config.get('output', 'param_fname')
-    
+
     # Check if any of the raster files is missing:
     rasters_fn = [dem_fname,mask_fname,soil_depth_fname,conductivity_fname,\
                   hillslope_fname,theta_sat_fname,theta_r_fname,psi_b_fname,\
@@ -197,14 +197,14 @@ def generate_param_file(ini_fname, isolated_cells=False):
         rasters_fn.append(wwb_ras_fname)
 #    if FEDDES:
 #        rasters_fn.append(brks_fname)
-    
-    
+
+
     # Check if all required raster files that were listed in the ini file exist
     for fn in rasters_fn:
         try:
-           with open(fn): pass
+            with open(fn): pass
         except IOError:
-           raise ValueError('Raster file \'%s\' does not exist.'%(fn.split('/')[-1]))
+            raise ValueError('Raster file \'%s\' does not exist.'%(fn.split('/')[-1]))
 
     # Read the input rasters
     dem             = read_raster(dem_fname)
@@ -283,7 +283,7 @@ def generate_param_file(ini_fname, isolated_cells=False):
         param_table[:,18] = Kc
     param_table[:,19] = psi_b[mask == 1]
     param_table[:,20] = lamda[mask == 1]
-    
+
     # Check Kc-raster file for any invalid values
     if KC:
         kc_tmp = Kc_ras[mask == 1] * Kc
@@ -388,7 +388,7 @@ def generate_param_file_DL(ini_fname, isolated_cells=False):
     try:
         kc_ras_fname   = config.get('raster_files', 'kc_ras_fname')
     except NoOptionError:
-        KC             = 0    
+        KC             = 0
 #    try:
 #        brks_fname     = config.get('raster_files', 'brooks_lamda_fname')
 #    except NoOptionError:
@@ -406,7 +406,7 @@ def generate_param_file_DL(ini_fname, isolated_cells=False):
 
 
     param_fname = config.get('output', 'param_fname')
-    
+
     # Check if any of the raster files is missing:
     rasters_fn = [dem_fname,mask_fname,soil_depth_fname,conductivity_fname,\
                   hillslope_fname,theta_sat_fname,theta_r_fname,psi_b_fname,\
@@ -426,9 +426,9 @@ def generate_param_file_DL(ini_fname, isolated_cells=False):
     # Check if all required raster files that were listed in the ini file exist
     for fn in rasters_fn:
         try:
-           with open(fn): pass
+            with open(fn): pass
         except IOError:
-           raise ValueError('Raster file \'%s\' does not exist.'%(fn.split('/')[-1]))
+            raise ValueError('Raster file \'%s\' does not exist.'%(fn.split('/')[-1]))
 
     # Read the input rasters
     dem             = read_raster(dem_fname)
@@ -520,7 +520,7 @@ def generate_param_file_DL(ini_fname, isolated_cells=False):
     param_table[:,25] = pVs_t0_
     param_table[:,26] = psi_b_[mask == 1]
     param_table[:,27] = lamda_[mask == 1]
-    
+
     # Check Kc-raster file for any invalid values
     if KC:
         kc_tmp = Kc_ras[mask == 1] * Kc
@@ -993,18 +993,18 @@ def channel_properties(cell_labels, channel_network, X, Y, cell_down, dem):
 def texture_lookup(soil_codes, soil_lookup_table):
     """
     * Objective:
-      Extraction of the parameters L (soil depth) and theta_s (porosity or 
+      Extraction of the parameters L (soil depth) and theta_s (porosity or
       humidity at saturation) for each catchment cell from the SIRI map
     * Input
-      - file_bin_WRC90 is the binary grid file containing the WRC90 soil 
-        property codes (Here only three 3 for Loamy Sand, 2 for Sandy Loam, 
+      - file_bin_WRC90 is the binary grid file containing the WRC90 soil
+        property codes (Here only three 3 for Loamy Sand, 2 for Sandy Loam,
         1 for Clay)
-      - file_table_WRC90_soil is an ASCII file containing a table of 
-        correspondance between the WRC90 codes and the values of Ks 
+      - file_table_WRC90_soil is an ASCII file containing a table of
+        correspondance between the WRC90 codes and the values of Ks
         (permeability) and theta_r (residual soil moisture)
     * Ouput
-      This routine returns two 1D array (ar_theta_r, ar_theta_s) containing 
-      respectively the values of Ks and theta_r for each cell. Cells are 
+      This routine returns two 1D array (ar_theta_r, ar_theta_s) containing
+      respectively the values of Ks and theta_r for each cell. Cells are
       ordered from West to East, North to South.
     """
     #Read the binary grid file of GLCC land use type
@@ -1029,5 +1029,5 @@ def texture_lookup(soil_codes, soil_lookup_table):
         #!!!! TO BE CHANGED FOR PARAMETER ADJUSTMENT !!!#
         ar_theta_r[ind]=ar_theta_r_moy[np.where(ar_code==i)][0]
         ar_Ks[ind]=ar_conduct[np.where(ar_code==i)][0]
-         
+
     return ar_theta_r, ar_Ks

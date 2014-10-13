@@ -178,7 +178,7 @@ def evapot_soil_overland_feddes(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB):
     """Compute the evapotranspiration from a model cell.
     The evapotranspiration loss is first taken from the overland
     store, if the storage in the overland store cannot satisfy the ET
-    demand then the water is extracted from the soil store. Water from the 
+    demand then the water is extracted from the soil store. Water from the
     overland store is evaporated at the rate of open water ET (ETo).
     In cases where the ET demand is greater than the available water, both the
     soil and overland store are drained up to the wilting point.
@@ -225,10 +225,10 @@ def evapot_soil_overland_feddes(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB):
     """
     # From Reference crop ET to crop ET in m
     ETc = kc*ETr*1e-3
-    
+
     # Calculate the Feddes stress response parameter
     fsr = Feddes_stress_response(psi, WWB)
-    
+
     # Convert open water et (ETo) to m
     ETo = ETo*1e-3
 
@@ -239,9 +239,9 @@ def evapot_soil_overland_feddes(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB):
             ETa_s = 0
             Vo1 = Vo0-ETo*(X**2)
             Vs1 = Vs0
-        else:            
+        else:
             # case where ET demand (ETo) is partly met by Vo0.
-            # Once Vo0 store is depleted then the remainder of ET demand is 
+            # Once Vo0 store is depleted then the remainder of ET demand is
             # calculated as the remainder of the ratio of ETo to Vo0.
             # The remaining "percentage" is then taken from the soil store.
             R_ETo_Vo0 = (ETo*X**2-Vo0)/(ETo*X**2)
@@ -255,7 +255,7 @@ def evapot_soil_overland_feddes(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB):
         ETa_s = ETc*fsr*(X**2)
         Vs1 = max(0., Vs0-ETa_s)
         ETa_o = 0
-    
+
     # Lump ET from overland and soil store together and convert from m3 to mm
     ETa = ((ETa_o+ETa_s)/X**2)*1e3
 
@@ -266,7 +266,7 @@ def Feddes_stress_response(psi, WWB):
     '''Compute the Feddes sink term which is the dimensionless stress parameter
     dependent on the matric pressure and plant properties i.e. plant response
     to water and oxygen stress.
-    
+
     Parameters
     ----------
     psi : scalar
@@ -275,9 +275,9 @@ def Feddes_stress_response(psi, WWB):
     WWB : scalar
         Contains the wetland unit number or dam value respectively. It will be
         used to switch between wetland and no terrestrial plants. Usually wetland
-        plants are able to transpire at potential rate despite water logging 
+        plants are able to transpire at potential rate despite water logging
         and therefore for wetland areas oxygen stress is neglected.
-    
+
     Returns
     -------
     fsr : scalar
@@ -291,7 +291,7 @@ def Feddes_stress_response(psi, WWB):
     # Idealy there should be a cataloug of differnt parameter sets for differnt
     # land use classes. E.g. pasture, millies, trees, wetlands, ect.
     # However this would entail to have an additional distributed parameter.
-    # The parameters for non-wetland areas are from 
+    # The parameters for non-wetland areas are from
     # All tresholds are in m
     if WWB > 0 and WWB < 200:
         h00 = 1.
@@ -302,7 +302,7 @@ def Feddes_stress_response(psi, WWB):
     h02 = -2.
     h03 = -8.
     h04 = -80.
-    
+
     y = 0
     if psi <= h00 and psi >= h0p:
 #        print 'case 1'
@@ -335,7 +335,7 @@ The stress response coefficient (0-1) has yielded %0.2f' %y)
     return y
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt    
+    import matplotlib.pyplot as plt
     h_min, h_max = -10, 100000
     y = np.zeros((h_max-h_min))
     x = np.zeros((h_max-h_min))
@@ -347,7 +347,7 @@ if __name__ == "__main__":
 #        print 'x, y:', i/-1000., y[cnt]
         cnt += 1
     plt.clf()
-    
+
     plt.plot(x,y)
 #    a = plt.gca()
 #    a.set_xscale('log')
@@ -356,14 +356,14 @@ if __name__ == "__main__":
 
 def evapot_soil_overland_feddes_AVC(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB,
                                     SSI, dat, m_i, m_d, SSI_ET_treshold):
-    
+
     '''This function reduces the evapotranspiration during certain months
     of the year when vegetation is inactive. For the Highfeld this period is
-    approx. between March and October where vegetation is inactive due to 
+    approx. between March and October where vegetation is inactive due to
     cold conditions, not necessarily due to water stress. However if the soil
     is very wet i.e. SSI > 85 % then direct soil evaporation does occur.
     In this case evaporation takes place at the ETo - open water rate.
-    
+
         Parameters
     ----------
     Vo0 : scalar
@@ -391,24 +391,24 @@ def evapot_soil_overland_feddes_AVC(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB,
         used to switch between wetland and terrestrial soil. Usually wetland
         plants are able to transpire at potential rate despite water logging.
     SSI : scalar
-        Soil saturation index (0-1), dimensionless.   
+        Soil saturation index (0-1), dimensionless.
     dat : datetime.datetime object
         date_time stamp of the current time step.
     m_i : scalar
         Month when vegetation starts to increase, i.e. spring.
     m_d : scalar
         Month when vegetation starts to decrease, i.e. autum.
-    
+
     '''
-    
+
     K_owa = 0.8
-    
+
     # Conversion from reference crop ET to crop ET in m
     ETc = kc*ETr*1e-3
-    
+
     # Calculate the Feddes stress response parameter
     fsr = Feddes_stress_response(psi, WWB)
-    
+
     # Convert open water et (ETo) to m
     ETo  = ETo * 1e-3
     fac_t, fac_e, s = f_v_AVC(SSI, fsr, dat, m_i, m_d, SSI_ET_treshold)
@@ -420,9 +420,9 @@ def evapot_soil_overland_feddes_AVC(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB,
             ETa_s = 0
             Vo1 = Vo0-ETo*(X**2)
             Vs1 = Vs0
-        else:            
+        else:
             # case where ET demand (ETo) is partly met by Vo0.
-            # Once Vo0 store is depleted then the remainder of ET demand is 
+            # Once Vo0 store is depleted then the remainder of ET demand is
             # calculated as the remainder of the ratio of ETo to Vo0.
             # The remaining "percentage" is then taken from the soil store.
             R_ETo_Vo0 = (ETo*X**2-Vo0)/(ETo*X**2)
@@ -430,7 +430,7 @@ def evapot_soil_overland_feddes_AVC(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB,
             Ea        = ETo * fac_e * K_owa * (X**2) * R_ETo_Vo0
             Ta        = ETc * fac_t * (X**2) * R_ETo_Vo0
             ETa_s     = Ea + Ta
-            
+
             Vo1 = 0.
             Vs1 = max(0., Vs0-ETa_s)
     else:
@@ -441,18 +441,18 @@ def evapot_soil_overland_feddes_AVC(Vo0, Vs0, Vsm, kc, ETr, ETo, X, psi, WWB,
         ETa_s = Ea + Ta
         Vs1   = max(0., Vs0-ETa_s)
         ETa_o = 0
-    
+
     # Lump ET from overland and soil store together and convert from m3 to mm
     ETa = ((ETa_o+ETa_s)/X**2)*1e3
     if __name__ == "__main__":
         return ETa, Vs1, Vo1, s
     else:
         return ETa, Vs1, Vo1
-    
-    
+
+
 def f_v_AVC(SSI, fsr, dat, m_i, m_d, SSI_ET_treshold):
     '''See documentation of evapot_soil_overland_feddes_AVC function
-    
+
     Returns
     f_Es_Tv : scalar
     factor Evaporation soil Transpiration vegetation - A dimensionless factor
@@ -479,7 +479,7 @@ def f_v_AVC(SSI, fsr, dat, m_i, m_d, SSI_ET_treshold):
     doy_wi_e = \
     dtm.datetime(yer,m_i-1,ut.last_day_of_month(dtm.datetime(yer,m_i-1,1)))\
     .timetuple().tm_yday
-    
+
     summer1 = range(doy_su_s, 367)
     summer2 = range(1, doy_su_e+1)
     winter1 = range(doy_wi_s, doy_wi_e+1)
@@ -489,7 +489,7 @@ def f_v_AVC(SSI, fsr, dat, m_i, m_d, SSI_ET_treshold):
 #    print 'doy_wi_s', doy_wi_s
 #    print 'doy_wi_e', doy_wi_e+1
 #    print 'mon', mon
-    
+
     if SSI <= t_ssi:
         # case where SSI is below the soil evaporation treshold
         if mon == m_i:
@@ -547,17 +547,17 @@ covered here is %s.' %dat.strftime("%d %b %Y"))
     return t_fac, e_fac, seasn
 
 if __name__ == "__main__":
-    
+
 #    dat = dtm.datetime(2012,2,29)
 #    print 'doy of dat', dat.timetuple().tm_yday
 #    f_v_AVC(0.6,1.,dat,10,3)
-    
-    
-    
-    
+
+
+
+
 #    stop
     import time
-    
+
     # define start date
     start_date = dtm.date.today()
     dat = start_date
@@ -573,17 +573,17 @@ if __name__ == "__main__":
     psb = 280.8 # psi_b
     Dt  = 86400
     thd = 0.5
-    
-    
+
+
     # generate random data
     ar_Vo0 = np.random.random(size=nts)*0.
     ar_Vs0 = np.random.random(size=nts)*Vsm
     ar_ssi = ar_Vs0/Vsm
     ar_psi = psb/np.power(ar_ssi, 1.0/lda)
-    
+
     ar_ETr = np.random.random(size=nts)*6
     ar_ETo = ar_ETr * 0.8
-    
+
     ar_ETa = np.ones((nts))*-999
     ar_Vs1 = np.ones((nts))*-999
     ar_Vo1 = np.ones((nts))*-999
@@ -591,13 +591,13 @@ if __name__ == "__main__":
     ar_t_fac = np.ones((nts))*-999
     ar_e_fac = np.ones((nts))*-999
     ar_seasn = np.ones((nts))*-999
-    
+
     t0 = time.time()
     # loop through time
     for t in xrange(nts):
         dat += dtm.timedelta(seconds=Dt)
         ar_dat.append(dat)
-        
+
         fsr = Feddes_stress_response(ar_psi[t], WWB)
         ar_t_fac[t], ar_e_fac[t], s0 = f_v_AVC(ar_ssi[t],fsr,dat,m_i,m_d,thd)
         ar_ETa[t], ar_Vs1[t], ar_Vo1[t], s =\
@@ -610,20 +610,20 @@ for t_fac (%s) and e_fac (%s) respectively. Their sum cannot be > 1.' \
         %(ar_ETa[t], ar_Vs1[t]))
 #        print dat, s
         print ar_psi[t]/1000., fsr
-    
-    
+
+
     t1 = time.time()
     dt = t1-t0
     print 'AVC execution of %i runs has taken %0.4f seconds.' %(nts, dt)
-    
+
     fig   = plt.figure()
-    
+
     ax1   = fig.add_subplot(111)
     ax2   = ax1.twinx()
     lines = []
     t_leg = []
     color = ['orange', 'black', 'red', 'brown', 'blue', 'green', 'brown']
-    
+
     lines += ax1.plot(ar_dat, ar_ETr,   color[0], marker='o', linewidth=1)
     lines += ax1.plot(ar_dat, ar_ETo,   color[1], marker='o', linewidth=1)
     lines += ax1.plot(ar_dat, ar_ETa,   color[2], marker='o', linewidth=1)
@@ -648,11 +648,11 @@ for t_fac (%s) and e_fac (%s) respectively. Their sum cannot be > 1.' \
     leg.get_frame().set_alpha(0.75)
 
     fig.savefig('P:\\Mooifontein\\PyTopkapi\\_Forcing_Data\\ET\\test_AVC', dpi=200)
-    
+
 #==============================================================================
 #     SECOND TEST WITH CONSTANT INPUT VALUES
 #==============================================================================
-    
+
     ssi    = 0.76
     psi    = psb/np.power(ssi, 1.0/lda)
 
@@ -662,20 +662,20 @@ for t_fac (%s) and e_fac (%s) respectively. Their sum cannot be > 1.' \
 
     print 'psi (mm):', psi
     print 'fsr:', fsr
-    
+
     test_len = 365
-    
+
     ar_t_fac = np.ones((test_len))*-999.
     ar_e_fac = np.ones((test_len))*-999.
     ar_seasn = np.ones((test_len))*-999.
-    
+
     for i in xrange(test_len):
         dat += dtm.timedelta(seconds=Dt)
         ar_dat.append(dat)
 
         ar_t_fac[i],ar_e_fac[i],ar_seasn[i] = f_v_AVC(ssi,fsr,dat,m_i,m_d,thd)
-    
-    
+
+
     fig2  = plt.figure()
     ax1   = fig2.add_subplot(111)
     ax2   = ax1.twinx()
@@ -683,11 +683,11 @@ for t_fac (%s) and e_fac (%s) respectively. Their sum cannot be > 1.' \
     lines = []
     t_leg = []
     color = ['orange', 'black', 'red', 'brown', 'blue', 'green', 'brown']
-    
+
     lines += ax1.plot(ar_dat, ar_t_fac, color[5], marker='.', linewidth=0)
     lines += ax1.plot(ar_dat, ar_e_fac, color[6], marker='.', linewidth=0)
     lines += ax2.plot(ar_dat, ar_seasn, color[1], marker='.', linewidth=0)
-    
+
     t_leg.append('Tfac')
     t_leg.append('Tfac')
     t_leg.append('Season')
@@ -700,14 +700,14 @@ for t_fac (%s) and e_fac (%s) respectively. Their sum cannot be > 1.' \
     ax1.legend(lines, t_leg, loc='best', fancybox=True)
     leg = ax1.get_legend()
     leg.get_frame().set_alpha(0.75)
-    
+
     fig2.savefig('P:\\Mooifontein\\PyTopkapi\\_Forcing_Data\\ET\\test_AVC2', dpi=200)
-    
+
 '''
     dat = dtm.date(2014,9,28)
     hi = 1.
     lo = 0.1
-    
+
     for i in xrange(10):
         dat += dtm.timedelta(seconds=Dt)
         d = float(dat.day)

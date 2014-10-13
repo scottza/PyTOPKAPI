@@ -24,10 +24,10 @@ def run(ini_file='plot_fluxes.ini', start_date = '1/1/1910', TKP_ini = 'TOPKAPI.
     parameter_fn     = config.get('files', 'file_cell_param')
 
     group_name = config.get('groups', 'group_name')
-    
+
     #outlet_ID = config.getint('parameters', 'outlet_ID')
     graph_format = config.get('parameters', 'graph_format')
-    
+
     rain = config.getboolean('flags', 'rain')
     ET   = config.getboolean('flags', 'ET')  # ETc = potential crop ref. ET (ETc = ETr * Kc)
     Vs   = config.getboolean('flags', 'Vs')
@@ -36,9 +36,9 @@ def run(ini_file='plot_fluxes.ini', start_date = '1/1/1910', TKP_ini = 'TOPKAPI.
 
     config.read(TKP_ini)
     print 'Read the file ',TKP_ini
-    
+
     fn_global_param = config.get('input_files', 'file_global_param')
-    
+
     #~~~~Read Global parameters file
     X, Dt, alpha_s, \
     alpha_o, alpha_c, \
@@ -60,13 +60,13 @@ def run(ini_file='plot_fluxes.ini', start_date = '1/1/1910', TKP_ini = 'TOPKAPI.
     # Read the run version number and add it to graph file name
     config.read('run_version.ini')
     ver_n = config.getint('version_number', 'version')
-    
+
     if ver_n < 100 and ver_n >= 10:
         ver_n = '0'+ str(ver_n)
     elif ver_n < 10:
         ver_n = '00' + str(ver_n)
     else: ver_n = str(ver_n)
-    
+
     image_out = image_out + '_' + str(ver_n) + '.' + graph_format
 
 #   Order        ETa      ETc         Vs        Qs
@@ -89,7 +89,7 @@ def run(ini_file='plot_fluxes.ini', start_date = '1/1/1910', TKP_ini = 'TOPKAPI.
         #Compute the mean catchment rainfall
         ar_rain = np.average(ndar_rain, axis=1)
         print 'ar_rain.shape', ar_rain.shape
-    
+
     if ET:
         h5file_in = h5.openFile(file_results, mode = 'r')
         #group = '/'+group_name_r+'/'
@@ -99,7 +99,7 @@ def run(ini_file='plot_fluxes.ini', start_date = '1/1/1910', TKP_ini = 'TOPKAPI.
         # Comput the mean ETc in the catchment
         ar_ETc = np.average(ndar_ETc,axis=1)
         ar_ETc = ar_ETc[1:]
-        
+
         # Now load the ETa data
         node = h5file_in.getNode('/', 'ET_out')
         ndar_ETa = node.read()
@@ -108,7 +108,7 @@ def run(ini_file='plot_fluxes.ini', start_date = '1/1/1910', TKP_ini = 'TOPKAPI.
         # Compute the mean ETa in the catchment
         ar_ETa = np.average(ndar_ETa,axis=1)
         ar_ETa = ar_ETa[1:]
-    
+
     if Vs:
         h5file_in = h5.openFile(file_results, mode = 'r')
         node = h5file_in.getNode('/Soil/', 'V_s')
@@ -117,7 +117,7 @@ def run(ini_file='plot_fluxes.ini', start_date = '1/1/1910', TKP_ini = 'TOPKAPI.
         h5file_in.close()
         ar_Vs = np.average(ndar_Vs,axis=1)
         ar_Vs = ar_Vs[1:]
-    
+
     if Vs:
         h5file_in = h5.openFile(file_results, mode = 'r')
         node = h5file_in.getNode('/Soil/', 'Qs_out')
@@ -139,9 +139,9 @@ def run(ini_file='plot_fluxes.ini', start_date = '1/1/1910', TKP_ini = 'TOPKAPI.
 
     ar_date = []
     n_rec = len(ar_ETa)
-    
+
     ar_sd = start_date.split('/')
-    
+
     if len(ar_sd[2]) == 4 and len(ar_sd[1]) < 3 and len(ar_sd[0]) < 3:
         pass
     else:
@@ -151,11 +151,11 @@ entered in the format \'DD/MM/YYYY\'.\
 
     stmp = []
     for s in ar_sd:
-        stmp.append(int(s))        
+        stmp.append(int(s))
     start_date = dtm.datetime(stmp[2],stmp[1],stmp[0])
-    
+
     print 'start date:', start_date
-    
+
     curr_dt = start_date
     for d in xrange(n_rec):
         curr_dt += dtm.timedelta(seconds=Dt)
@@ -198,7 +198,7 @@ entered in the format \'DD/MM/YYYY\'.\
         lines += ax.plot(ar_date[0:1], ar_Qsim[0:1], 'w:')
         tab_leg.append(('Eff = '+str(nash_value)[0:5]))
     '''
-    
+
     #ax.set_xlim(ar_date[0], ar_date[-1])
     ytitle=r'$Evapotranspiration \ (mm)$'
     ax.set_ylabel(ytitle, fontsize=25)
@@ -209,7 +209,7 @@ entered in the format \'DD/MM/YYYY\'.\
     ax2.bar(ar_date, ar_rain, width=delta,
             facecolor='blue', edgecolor='blue', alpha=transparency_P)
     ax2.set_ylim(max(ar_rain)*2, min(ar_rain))
-    
+
     if Vs:
         ax3 = ax.twinx()
         offset = 50

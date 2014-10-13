@@ -75,7 +75,7 @@ def field_map2(ar_field,ar_coorx,ar_coory,X,image_out,title,flip=0,min_val=0.,ma
 
 def create_maps(base_path):
     #os.chdir(base_path)
-    
+
     file_cell_param   =base_path + '/run_the_model/parameter_files/cell_param.dat'
     file_global_param =base_path + '/run_the_model/parameter_files/global_param.dat'
     path_out          =base_path + '/run_the_model/parameter_files/graphs/'
@@ -135,7 +135,7 @@ def create_maps(base_path):
     ##tab2[tab<0]=1.
     ##tab2[tab>0]=2.
     field_map(tab2,ar_coorx,ar_coory,X,image_out,r'$Diff tan(\beta) \ GIS-Channel$',min_val=min(tab2),max_val=max(tab2))
-    
+
     #no
     image_out=path_out+'field_no.png'
     field_map(ar_n_o,ar_coorx,ar_coory,X,image_out,'n overland',max_val=max(ar_n_o))
@@ -154,14 +154,14 @@ def create_maps(base_path):
     #Vsi
     image_out=path_out+'field_pVs_t0.png'
     field_map(ar_pVs_t0,ar_coorx,ar_coory,X,image_out,'Initial soil moisture %',max_val=max(ar_pVs_t0))
-    
+
     #psi_b
     image_out=path_out+'field_psi_b.png'
     field_map(psi_b,ar_coorx,ar_coory,X,image_out,r'$\psi _b$',max_val=max(psi_b))
     #lambda
     image_out=path_out+'field_lamda_soil.png'
     field_map(lamda,ar_coorx,ar_coory,X,image_out,r'$\lambda$',max_val=max(lamda))
-    
+
     #label
     image_out=path_out+'field_label.png'
     field_map(ar_cell_label,ar_coorx,ar_coory,X,image_out,'Cell label',max_val=max(ar_cell_label))

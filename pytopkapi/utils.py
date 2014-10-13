@@ -289,14 +289,14 @@ def CFF(fn_in_r, fn_in_e, len_cells, rain_distributed=0, TKP_ini='TOPKAPI.ini',
      bool to switch between same rainfall in the catchment
      or different rainfall for each cell. The rain cell parameter is in the
      GIS_bin_files folder
-     
+
      Returns
      -------
      Nothing
     """
-    
+
     # Test wether the rain or ET input files are windows shortcuts or real files
-    
+
 #    for fn in os.listdir(os.path.join(os.getcwd(),os.path.split(fn_in_r)[0])):
 #        if fn.endswith('.lnk'):
 #            if os.path.split(fn_in_r)[1] + '.lnk' == fn:
@@ -317,14 +317,14 @@ def CFF(fn_in_r, fn_in_e, len_cells, rain_distributed=0, TKP_ini='TOPKAPI.ini',
 #                shortcut = shell.CreateShortCut(fn)
 #                fn_in_e = shortcut.Targetpath
 #                print 'The target %s of the shortcut will be used' %(fn_in_e)
-    
+
 
     print 'current directory: ', os.getcwd()
     # check if the forcing files already exist
     fn_h5_r = 'forcing_variables/rainfields.h5'
     fn_h5_e = 'forcing_variables/ET.h5'
     force_d = 'forcing_variables/'
-    
+
     if rain_distributed:
         config = SafeConfigParser()
         config.read(CRF_ini)
@@ -347,7 +347,7 @@ def CFF(fn_in_r, fn_in_e, len_cells, rain_distributed=0, TKP_ini='TOPKAPI.ini',
         else:
             rain_fname = '..\\'+rain_fname
         mask_fname = '..\\'+mask_fname
-        
+
         config.read(TKP_ini)
         try:
             param_fname = config.get('input_files', 'file_cell_param')
@@ -362,19 +362,19 @@ for \'file_cell_param\'.Therefore distributed rainfall was switched off.')
             try:
                 with open(rain_fname1): pass
             except IOError:
-               raise ValueError('Rain distributed but raster file \'%s\' \
-does not exist.'%(rain_fname1.split('/')[-1]))
+                raise ValueError('Rain distributed but raster file \'%s\' \
+ does not exist.'%(rain_fname1.split('/')[-1]))
             try:
                 with open(rain_fname2): pass
             except IOError:
-               raise ValueError('Rain distributed but raster file \'%s\' \
-does not exist.'%(rain_fname2.split('/')[-1]))
+                raise ValueError('Rain distributed but raster file \'%s\' \
+ does not exist.'%(rain_fname2.split('/')[-1]))
         else:
             try:
                 with open(rain_fname): pass
             except IOError:
-               raise ValueError('Rain distributed but raster file \'%s\' \
-does not exist.'%(rain_fname.split('/')[-1]))
+                raise ValueError('Rain distributed but raster file \'%s\' \
+ does not exist.'%(rain_fname.split('/')[-1]))
         '''
         ar_cell_label, ar_coorx, \
         ar_coory, ar_lambda, \
@@ -389,7 +389,7 @@ does not exist.'%(rain_fname.split('/')[-1]))
         '''
         from pytopkapi.parameter_utils.create_file_04_2013_Kc import read_raster
         ar_mask = read_raster(mask_fname)
-        
+
         if NB_periods == 2:
             ar_rain1 = read_raster(rain_fname1)
             ar_rain2 = read_raster(rain_fname2)
@@ -424,7 +424,7 @@ def rain_forcing(fn_in, len_cells):
     # Input:
     # fn_in: filename of input rainfall file (string)
     # len_cells: number of cells of the catchment (int)
-    
+
     #### Output file
     fn_h5 = 'forcing_variables/rainfields.h5'
     with open(fn_in, 'r') as f_in:
@@ -442,8 +442,8 @@ def rain_forcing(fn_in, len_cells):
 
     ### Create the H5 file ###
     f_h5 = h5py.File(fn_h5, 'w')
-    sub_group = f_h5.create_group('sample_event')    
-    sub_group.create_dataset('rainfall', data=rain)    
+    sub_group = f_h5.create_group('sample_event')
+    sub_group.create_dataset('rainfall', data=rain)
     f_h5.close()
 
 
@@ -455,17 +455,17 @@ def rain_forcing_dist(fn_in_r, ar_rain, NB_periods=1, splits_i=(0)):
     # fn_in_r: filename of input rainfall file (string)
     # ar_rain: array of the rain raster file
     # ar_cell_label: array of the naming of all cells
-    
+
 #    if NB_periods > 1:
         # specify the split lines for the various periods
         #splits_i = 634
         #158
 #        cols1    = [0,1]
 #        cols2    = [1,2,3,4]
-    
+
     P_rec = np.loadtxt(fn_in_r,dtype=np.float32,delimiter='\t',skiprows=1, ndmin=2)
     print 'Shape of rain input file:', P_rec.shape
-    
+
     if NB_periods > 1:
         Len_cells = len(ar_rain[0])
     else:
@@ -473,9 +473,9 @@ def rain_forcing_dist(fn_in_r, ar_rain, NB_periods=1, splits_i=(0)):
     Len_P_rec = len(P_rec[:,0])
     print 'Len_cells:', Len_cells
     print 'Len_P_rec:', Len_P_rec
-    
+
     ndar_rain = np.zeros((Len_P_rec,Len_cells),dtype=np.float32)
-    
+
     #for _ in xrange(NB_periods):
     '''
     The column indices of the rainfall records (P_rec) are assigned to every
@@ -505,7 +505,7 @@ def rain_forcing_dist(fn_in_r, ar_rain, NB_periods=1, splits_i=(0)):
     ### Create the H5 file ###
     f_h5 = h5py.File(fn_h5, 'w')
     sub_group = f_h5.create_group('sample_event')
-    sub_group.create_dataset('rainfall', data=ndar_rain)    
+    sub_group.create_dataset('rainfall', data=ndar_rain)
     f_h5.close()
 
 def et_forcing(fn_in, len_cells):
@@ -517,7 +517,7 @@ def et_forcing(fn_in, len_cells):
             et.append(float(l))
 
     etdata_o = []
-    etdata_r = []    
+    etdata_r = []
     for i in range(len(et)):
         line_tmp = []
         for c in range(len_cells):
@@ -530,9 +530,9 @@ def et_forcing(fn_in, len_cells):
         for c in range(len_cells):
             line_tmp.append(et[i]/1.2)
         etdata_o.append(line_tmp)
-    
+
     et_o = np.array(etdata_o)
-    
+
     ### Create the H5 file ###
     f_h5 = h5py.File(fn_h5, 'w')
     sub_group = f_h5.create_group('sample_event')
@@ -549,11 +549,11 @@ def file_len(fname):
 
 
 def cell_debugger(TPKPI_ini, cell):
-    
+
     config = SafeConfigParser()
     config.read(TPKPI_ini)
     file_cell_param   = config.get('input_files', 'file_cell_param')
-    
+
     ar_cell_label, ar_coorx, \
     ar_coory, ar_lambda, \
     ar_Xc, ar_wwb, \
@@ -564,8 +564,8 @@ def cell_debugger(TPKPI_ini, cell):
     ar_cell_down, ar_pVs_t0, \
     ar_Vo_t0, ar_Qc_t0, \
     ar_kc, psi_b, lamda = pm.read_cell_parameters(file_cell_param)
-    
-    
+
+
     x_t, y_t = show_cell_cords(ar_cell_label,cell,ar_coorx,ar_coory)
     print 'The affected cell %i has the coordinates x=%0.2f, y=%0.2f'%(cell, x_t, y_t)
 

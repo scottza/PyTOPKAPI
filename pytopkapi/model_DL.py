@@ -72,7 +72,7 @@ def run_DL(ini_file='TOPKAPI.ini'):
     fac_n_c   = config.getfloat('calib_params', 'fac_n_c')
     fac_th_s  = config.getfloat('calib_params', 'fac_th_s')
     fac_th_s_ = config.getfloat('calib_params', 'fac_th_s_II')
-    
+
     ##~~~~~~ Starting time ~~~~~~~~##
     try:
         start_date = config.get('start_date', 'start_date')
@@ -84,7 +84,7 @@ def run_DL(ini_file='TOPKAPI.ini'):
         print 'WARNING: No starting date was provided. This is necessary if \
 you want to use the AVC evaporation method. You also need to specify the \
 the \'evaporation_options\'.'
-    
+
     try:
         mon_i = config.getint('evaporation_options', 'month_increase')
         mon_d= config.getint('evaporation_options', 'month_decrease')
@@ -99,7 +99,7 @@ the \'evaporation_options\'.'
         Qseep_dam_mm = config.getfloat('forcing_options', 'Seepage_Dam_mm')
         Dams_ini     = config.getfloat('forcing_options', 'Dams_initial')
         WL_dam_avg   = config.getfloat('forcing_options', 'Average_WL_dam')
-        
+
     except NoOptionError:
         print 'WARNING: At least one of the parameters for DAMs were not \
 provided in the model initiation file. The DAM functionallity was switched \
@@ -110,7 +110,7 @@ WL_dam_avg - Average depth of water in dam at FSL.'
         Dams_on      = 0
         WL_dam_avg   = 0.
         Dams_ini     = 0.
-    
+
     if Dams_on:
         print 'Dam module active...'
     else:
@@ -127,7 +127,7 @@ module.\n\
 In order to maintain backwards compatability the ET option was set to \
 \'Standard\'.' %(ini_file)
         ET_module_option = 'Standard'
-        
+
 
     ##~~~~~~ External flows ~~~~~~##
     external_flow = config.getboolean('external_flow', 'external_flow')
@@ -167,7 +167,7 @@ In order to maintain backwards compatability the ET option was set to \
     if not rain_distributed and n_cols_rain > 1:
         raise ValueError('You have chosen non-distributed rainfall, however\
  you provide more than one column of rainfall in the rain forcing file')
-    
+
     if rain_distributed and n_cols_rain < 2:
         raise ValueError('You have chosen distributed rainfall, however you\
  provide only one cell with rainfall in the rain forcing file')
@@ -216,7 +216,7 @@ In order to maintain backwards compatability the ET option was set to \
     ar_L0_, ar_Ks0_, ar_theta_r_, \
     ar_theta_s0_, ar_pVs_t0_, psi_b_,\
     lamda_ = pm.read_cell_parameters_DL(file_cell_param)
-    
+
 
     #~~~~Number of cell in the catchment
     nb_cell = len(ar_cell_label)
@@ -249,13 +249,13 @@ In order to maintain backwards compatability the ET option was set to \
 #    print 'Min Ks =', min(ar_Ks)
 #    print 'Min n_o =', min(ar_n_o)
 #    print 'Min n_c =', min(ar_n_c)
-    
-    
+
+
     # Check the soil imput files for validity:
-    
+
     soil_min = min(ar_L)<=0. or min(ar_Ks)<=0. or min(ar_theta_r)<=0. or\
     min(ar_theta_s)<=0. or min(psi_b)<=0. or min(lamda)<=0.
-    
+
     if soil_min:
         err_msg = 'One of the soil input files contains values below or equal to \
 zero. Make sure the soil input rasters have the right extend and \
@@ -323,10 +323,10 @@ contain a valid value range.'
         ar_Vo0  = ar_Vo_t0
         ar_Vc0  = fl.initial_volume_channel(ar_Qc_t0, ar_W, X, ar_n_c)
         ar_Vd0  = np.ones(nb_cell)*ar_wwb*WL_dam_avg*Dams_ini*1e-2
-        
+
         ar_Vs0_scott = ar_Vs0
         ar_Vo0_scott = ar_Vo0
-        
+
 
     ## Computed variables
     #Matrix of soil,overland and channel store at the end of the time step
@@ -386,7 +386,7 @@ contain a valid value range.'
                                            expectedrows=nb_time_step)
     else:
         array_Qs_out = h5file.getNode(grp_name+'/Qs_out')
-    
+
     if grp_name+'/Qs_outII' not in h5file:
         array_Qs_out_ = h5file.createEArray(grp_name, 'Qs_outII',
                                            atom, shape=(0,nb_cell),
@@ -402,7 +402,7 @@ contain a valid value range.'
                                        expectedrows=nb_time_step+1)
     else:
         array_Vs = h5file.getNode(grp_name+'/V_s')
-    
+
     if grp_name+'/V_sII' not in h5file:
         array_Vs_ = h5file.createEArray(grp_name, 'V_sII',
                                        atom, shape=(0, nb_cell),
@@ -410,7 +410,7 @@ contain a valid value range.'
                                        expectedrows=nb_time_step+1)
     else:
         array_Vs_ = h5file.getNode(grp_name+'/V_sII')
-    
+
     if grp_name+'/V_s_scott' not in h5file:
         array_Vs_scott = h5file.createEArray(grp_name, 'V_s_scott',
                                        atom, shape=(0, nb_cell),
@@ -467,7 +467,7 @@ contain a valid value range.'
                                        expectedrows=nb_time_step)
     else:
         array_Vc = h5file.getNode(grp_name+'/V_c')
-    
+
     if grp_name+'/Ec_out' not in h5file:
         array_Ec_out = h5file.createEArray(grp_name, 'Ec_out',
                                            atom, shape=(0,nb_cell),
@@ -499,7 +499,7 @@ contain a valid value range.'
                                            expectedrows=nb_time_step)
     else:
         array_Q_down = h5file.getNode('/Q_down')
-    
+
     if '/Q_downII' not in h5file:
         array_Q_down_ = h5file.createEArray('/', 'Q_downII',
                                            atom, shape=(0,nb_cell),
@@ -550,10 +550,10 @@ contain a valid value range.'
         array_Vs_.append(ar_Vs0_.reshape((1,nb_cell)))
 
         array_Vo.append(ar_Vo0.reshape((1,nb_cell)))
-        
+
         array_Vs_scott.append(ar_Vs0_scott.reshape((1,nb_cell)))
         array_Vo_scott.append(ar_Vo0_scott.reshape((1,nb_cell)))
-        
+
         array_Vc.append(ar_Vc0.reshape((1,nb_cell)))
         array_Vd.append(ar_Vd0.reshape((1,nb_cell)))
 
@@ -577,10 +577,10 @@ contain a valid value range.'
 
     eff_theta  = ar_theta_s  - ar_theta_r
     eff_theta_ = ar_theta_s_ - ar_theta_r_
-    
+
     ar_d_t = np.zeros((nb_time_step))
     t_avg_nr = 10
-    
+
     date_time = start_date
 
     ##===========================##
@@ -647,10 +647,10 @@ contain a valid value range.'
             # Convert Pr_prim (m/s) to (mm/s)
 #            print 'ar_Vs0[cell] ar_Ks[cell] eff_sat[cell] ar_c[cell]'
 #            print ar_Vs0[cell], ar_Ks[cell]*1e-3, eff_sat[cell], ar_c[cell]
-            
+
             Pr_prim_rate = Pr_prim_rate*1e3
 #            print 'Pr_prim_rate (mm/s):', Pr_prim_rate
-            
+
             infiltration_depth_ = green_ampt_cum_infiltration(Pr_prim_rate,
                                                               psi_[cell],
                                                               eff_theta_[cell],
@@ -664,15 +664,15 @@ contain a valid value range.'
                 print 'WARNING: Infiltration depth from the \
 green_ampt_cum_infiltration function has resulted a negative value: %0.2f mm.'\
                 %(infiltration_depth_)
-            
+
             # Infiltration__excess should not be necessary
 #            infiltration__excess = Pr_prim_rate*1e-3 - infiltration_depth_/Dt
             # m/s = m/s - m/s
-            
+
             ## ============================ ##
             ## ===== Lower SOIL STORE ===== ##
             ## ============================ ##
-            
+
             ar_a_s_[cell] = fl.input_soil(infiltration_depth_, Dt, X,
                                          ar_Q_to_next_cell_, li_cell_up[cell])
 
@@ -690,7 +690,7 @@ green_ampt_cum_infiltration function has resulted a negative value: %0.2f mm.'\
                                - ((ar_Vs1_[cell]-ar_Vs0_[cell])/Dt  \
                                + ar_Qs_out_[cell]))
 #                               + infiltration__excess*X**2)    should not be necessary
-            
+
             # Update Vs0 after drainage into second layer
             ar_Vs0[cell] = ar_Vs0[cell] - infiltration_depth_*1e-3*X**2
             ## ======================== ##
@@ -772,7 +772,7 @@ green_ampt_cum_infiltration function has resulted a negative value: %0.2f mm.'\
                 rain_excess = ndar_rain[t] - infiltration_depth
             # convert mm to m^3/s
             rain_excess = max(0, (rain_excess*(10**-3)/Dt)*X**2)
-            
+
             # The following calculates the saturated overland flow according to:
             # Soil inflos (P,I,O) - Storage - Soil outflow + hortonian overl. flow.
             ar_a_o[cell] = max(0,
@@ -826,7 +826,7 @@ cell %i. To prevent crashing this cell will be treated as terrestrial.' %cell
                 print 'ar_W[cell]', ar_W[cell]
                 print 'X,', X
                 print 'ar_Xc[cell]', ar_Xc[cell]
-            
+
             # ET input data needed for dam ET, hence moved up
             if ET_distributed:
                 ETr_t = ndar_ETr[t, cell]
@@ -885,11 +885,11 @@ cell down...'
                     print 'Problem Channel: Non authorized operand....'
                     h5file.close()
                     stop
-                
+
                 # ~~~~ Computation of storage in Dam if present
                 # The label for a dam cell is has to be >= 200 (in ar_wwb)
                 ar_Qd_inp[cell] = ar_Qc_out[cell]
-                
+
                 if ar_wwb[cell] >= 200 and Dams_on:
                     ar_Qc_out[cell], \
                     ar_Vd1[cell] = fl.Qout_dam(Dt, WL_dam_avg,
@@ -954,7 +954,7 @@ cell down...'
                                                                 date_time,
                                                                 mon_i, mon_d,
                                                                 SSI_ET_treshold)
- 
+
 
 
 
@@ -970,7 +970,7 @@ cell down...'
 
                 raise ValueError('Soil volume (%0.4f m3) exceeds porosity or\
  maximum soil volume (%0.4f m3)' %(ar_Vs1[cell], ar_Vsm[cell]))
-                
+
             #~~~~~ Evaporation from channel
             #ar_ET_channel[cell] in mm of water removed from channel
             if ar_lambda[cell] == 1 and ar_wwb[cell] < 200:
@@ -1004,7 +1004,7 @@ cell down...'
         array_Vd.append(ar_Vd1.reshape((1,nb_cell))) # Volume in Dam
         array_Vs_scott.append(ar_Vs1_scott.reshape((1,nb_cell))) # Volume soil store
         array_Vo_scott.append(ar_Vo1_scott.reshape((1,nb_cell))) # Volume overland s
-        
+
         array_Qs_out.append( ar_Qs_out.reshape( (1,nb_cell)))
         array_Qs_out_.append(ar_Qs_out_.reshape((1,nb_cell)))
         array_Qo_out.append(ar_Qo_out.reshape((1,nb_cell)))
@@ -1017,19 +1017,19 @@ cell down...'
 
         array_ET_out.append(ar_ETa.reshape((1,nb_cell)))
         array_ET_out_scott.append(ar_ETa_scott.reshape((1,nb_cell)))
-        
+
         array_ETc.append(ar_ETc.reshape((1,nb_cell)))
 
         E_vol = ar_ET_channel*1e-3 * ar_W * ar_Xc  # m3/Dt
         array_Ec_out.append(E_vol.reshape((1,nb_cell)))
 
     h5file.close()
-    
+
     t_end = dtm.datetime.today()
     t_zro = dtm.datetime(2000,1,1,0,0,0)
     t_dsp = t_zro + dtm.timedelta(seconds=(t_end-t_ini).seconds)
     t_dff =  t_dsp.strftime('%H:%M:%S')
-    
+
     print 'Model run %s took %s' %(os.getcwd(), t_dff)
 
     print ' '

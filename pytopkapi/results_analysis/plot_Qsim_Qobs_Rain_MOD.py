@@ -15,7 +15,7 @@ def run(ini_file = 'plot-flow-precip.ini'):
     ar_Qsim, ar_Qobs = flux_plot(ini_file)
     write_validation_results2file(ar_Qsim, ar_Qobs)
     flux_plot_calibration(ini_file)
-    
+
 
 def flux_plot(ini_file):
     rc('text', usetex=False)
@@ -29,10 +29,10 @@ def flux_plot(ini_file):
     image_out = config.get('files','image_out')
 
     group_name=config.get('groups','group_name')
-    
+
     outlet_ID = config.getint('parameters', 'outlet_ID')
     graph_format = config.get('parameters', 'graph_format')
-    
+
     Qobs       = config.getboolean('flags','Qobs')
     Pobs       = config.getboolean('flags','Pobs')
     nash       = config.getboolean('flags','nash')
@@ -47,13 +47,13 @@ def flux_plot(ini_file):
     # Read the run version number and add it to graph file name
     config.read('run_version.ini')
     ver_n = config.getint('version_number', 'version')
-    
+
     if ver_n < 100 and ver_n >= 10:
         ver_n = '0'+ str(ver_n)
     elif ver_n < 10:
         ver_n = '00' + str(ver_n)
     else: ver_n = str(ver_n)
-    
+
     image_out = image_out + '_' + str(ver_n) + '.' + graph_format
 
     tab_col=['k','r']
@@ -95,7 +95,7 @@ def flux_plot(ini_file):
 
     lines = []
     tab_leg = []
-    
+
     if Qobs:
         lines += ax.plot(ar_date, ar_Qobs,
                          color=tab_col[-1],
@@ -122,22 +122,22 @@ def flux_plot(ini_file):
         RMSE_value = ut.RMSE(ar_Qsim,ar_Qobs)
         lines += ax.plot(ar_date[0:1], ar_Qsim[0:1], 'w:')
         tab_leg.append('RMSE      = '+str(RMSE_value)[0:5])
-    
+
     if RMSE_norm:
         RMSE_norm_value = ut.RMSE_norm(ar_Qsim,ar_Qobs)
         lines += ax.plot(ar_date[0:1], ar_Qsim[0:1], 'w:')
         tab_leg.append('RMSE_norm = '+str(RMSE_norm_value)[0:5])
-    
+
     if Diff_cumul:
         Diff_cumul_value = ut.Diff_cumul(ar_Qsim,ar_Qobs)
         lines += ax.plot(ar_date[0:1], ar_Qsim[0:1], 'w:')
         tab_leg.append('Diff_cum  = '+str(Diff_cumul_value)[0:5])
-    
+
     if Bias_cumul:
         Bias_cumul_value = ut.Bias_cumul(ar_Qsim,ar_Qobs)
         lines += ax.plot(ar_date[0:1], ar_Qsim[0:1], 'w:')
         tab_leg.append('Bias_cum  = '+str(Bias_cumul_value)[0:5])
-    
+
     if Err_cumul:
         Err_cumul_value = ut.Err_cumul(ar_Qsim,ar_Qobs)
         lines += ax.plot(ar_date[0:1], ar_Qsim[0:1], 'w:')
@@ -208,14 +208,14 @@ def read_observed_flow(file_name):
     return dates, Q
 
 def write_validation_results2file(ar_Qsim, ar_Qobs, topkapi_ini_file = 'TOPKAPI.ini'):
-    
-    
+
+
     config = SafeConfigParser()
     config.read(topkapi_ini_file)
     fn_change_log_out = config.get('output_files', 'file_change_log_out')
 
     f_out = open(fn_change_log_out, 'a')
-    
+
     values = []
     values.append(ut.Nash(ar_Qsim,ar_Qobs))
     values.append(ut.R2(ar_Qsim, ar_Qobs))
@@ -225,7 +225,7 @@ def write_validation_results2file(ar_Qsim, ar_Qobs, topkapi_ini_file = 'TOPKAPI.
     values.append(ut.Bias_cumul(ar_Qsim, ar_Qobs))
     values.append(ut.Err_cumul(ar_Qsim, ar_Qobs))
     values.append(ut.Abs_cumul(ar_Qsim, ar_Qobs))
-    
+
     names = ['nash_value', 'r2_value', 'RMSE_value', 'RMSE_norm_value', 'Diff_cumul_value', 'Bias_cumul_value', 'Err_cumul_value', 'Abs_cumul_value']
 
     for v in values:
@@ -253,11 +253,11 @@ def flux_plot_calibration(ini_file):
     image_out = config.get('files','image_out')
 
     group_name=config.get('groups','group_name')
-    
+
     outlet_ID    = config.getint('parameters', 'outlet_ID')
     graph_format = config.get('parameters', 'graph_format')
     start_cal    = config.get('parameters', 'start_calibration')
-    
+
     Qobs       = config.getboolean('flags','Qobs')
     Pobs       = config.getboolean('flags','Pobs')
     nash       = config.getboolean('flags','nash')
@@ -272,13 +272,13 @@ def flux_plot_calibration(ini_file):
     # Read the run version number and add it to graph file name
     config.read('run_version.ini')
     ver_n = config.getint('version_number', 'version')
-    
+
     if ver_n < 100 and ver_n >= 10:
         ver_n = '0'+ str(ver_n)
     elif ver_n < 10:
         ver_n = '00' + str(ver_n)
     else: ver_n = str(ver_n)
-    
+
     image_out = image_out[0:-3] + '/Calibration/PPQ_' + str(ver_n) + '_CAL.' + graph_format
 
     tab_col=['k','r']
@@ -297,21 +297,21 @@ def flux_plot_calibration(ini_file):
     start_d = []
     for s in start_cal.split('/'):
         start_d.append(int(s))
-    
+
     start_date = dtm.datetime(start_d[2],start_d[1],start_d[0])
     print 'Calibration period commences on %s' %(start_date.strftime('%d %b \'%y'))
-    
+
     cc = 0    # commencing calibration
-    
+
     for d in ar_date:
         #print start_date, '==', d
         #print 'cc =', cc
         cc += 1
         if start_date == d:
             break
-    
+
 #    print cc
-    
+
     #del ar_date[:] does not work for arrays
     delta = date2num(ar_date[1]) - date2num(ar_date[0])
 
@@ -344,12 +344,12 @@ def flux_plot_calibration(ini_file):
 
     lines   = []
     tab_leg = []
-    
+
 #    print len(ar_date[cc:])
 #    print len(ar_Qobs)
 #    print len(ar_Qsim)
 #    print len(ar_rain)
-    
+
     if Qobs:
         lines += ax.plot(ar_date[cc:], ar_Qobs,
                          color=tab_col[-1],
@@ -376,22 +376,22 @@ def flux_plot_calibration(ini_file):
 #        RMSE_value = ut.RMSE(ar_Qsim,ar_Qobs)
 #        lines += ax.plot(ar_date[cc:cc+1], ar_Qsim[0:1], 'w:')
 #        tab_leg.append(('RMSE      = '+str(RMSE_value)[0:5]))
-#    
+#
 #    if RMSE_norm:
 #        RMSE_norm_value = ut.RMSE_norm(ar_Qsim,ar_Qobs)
 #        lines += ax.plot(ar_date[cc:cc+1], ar_Qsim[0:1], 'w:')
 #        tab_leg.append(('RMSE_norm = '+str(RMSE_norm_value)[0:5]))
-    
+
     if Diff_cumul:
         Diff_cumul_value = ut.Diff_cumul(ar_Qsim,ar_Qobs)
         lines += ax.plot(ar_date[cc:cc+1], ar_Qsim[0:1], 'w:')
         tab_leg.append((r'$\mathbf{Cumulative~Difference = %s (m^3/s)}$' %str(Diff_cumul_value)[0:4]))
-    
+
 #    if Bias_cumul:
 #        Bias_cumul_value = ut.Bias_cumul(ar_Qsim,ar_Qobs)
 #        lines += ax.plot(ar_date[0:1], ar_Qsim[0:1], 'w:')
 #        tab_leg.append(('Bias_cum  = '+str(Bias_cumul_value)[0:5]))
-    
+
     if Err_cumul:
         Err_cumul_value = ut.Err_cumul(ar_Qsim,ar_Qobs)
         lines += ax.plot(ar_date[cc:cc+1], ar_Qsim[0:1], 'w:')
@@ -437,9 +437,9 @@ def flux_plot_calibration(ini_file):
 
     formatter = DateFormatter('%d %b \'%y')
     plt.gcf().axes[0].xaxis.set_major_formatter(formatter)
-    
+
     fig.canvas.draw()
-    
+
     tmp = []
 #    for l in ax2.get_yticks():
 #        print l
@@ -448,13 +448,13 @@ def flux_plot_calibration(ini_file):
         tmp.append(r'$\mathbf{%s}$' %label.get_text().replace('$',''))
     ax2.set_yticklabels(tmp)
         #label.set_fontproperties(ticks_font)
-    
+
     tmp2 = []
     for l in ax.get_yticks():
         tmp2.append(r'$\mathbf{%s}$' %l)
         #label.set_fontproperties(ticks_font)
     ax.set_yticklabels(tmp2)
-#    
+#
 #    for label in ax2.get_yticklabels():
         #label.set_fontproperties(ticks_font)
 

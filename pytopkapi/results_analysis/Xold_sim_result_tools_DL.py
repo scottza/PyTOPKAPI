@@ -387,7 +387,7 @@ def extract_ssi_to_file(sim_fname, param_fname,
 
     tkpi_file.close()
     result_file.close()
-    
+
 def run_version_log(control_fname, run_version_fname):
     """Write some parameters from TOPKAIP.ini file to a version
     file including the version number. This helps to keep track
@@ -400,39 +400,39 @@ def run_version_log(control_fname, run_version_fname):
     run_version_fname : string
         The file name of the version log file.
     """
-    
+
     config = SafeConfigParser()
     config.read(control_fname)
-    
+
     # Read the directory and file name for the change log-file
     fn_change_log_out = config.get('output_files', 'file_change_log_out')
-    
+
     # Write the current calibration parameters to the log
     f_out = open(fn_change_log_out, 'a')
-    
+
     f_out.write('______________________________\n')
     for name in ConfigParser.ConfigParser.items(config, 'calib_params'):
         f_out.write(name[0] + ' = ' + name[1] + '\n')
-        
+
     # Read the version number from the config file
     config.read(run_version_fname)
     ver_n = config.getint('version_number', 'version')
-    
+
     # Now update the version number for the next run and overwrite the config file
     ver_n += 1
-    
+
     config = ConfigParser.RawConfigParser()
-    
+
     config.add_section('version_number')
     config.set('version_number', 'version', ver_n)
-    
+
     with open(run_version_fname, 'w') as configfile:
         config.write(configfile)
-    
+
     f_out.write('    Run Version = ' + str(ver_n) + '\n')
     f_out.close()
 
-    
+
 def Extract_flow_at_outlet(plot_ini='plot-flow-precip.ini',
                            start_stamp='', split_month=10,
                            topkapi_ini = 'TOPKAPI.ini',
@@ -449,7 +449,7 @@ def Extract_flow_at_outlet(plot_ini='plot-flow-precip.ini',
       conditions in daily resolution
     - Water Balance values (P = ET + Qo + Qs + dS) for all Wetland Water
       Balance (WWB) units, all in m3/T and in mm respectively
-    
+
     A flow duration curve based on monthly values is created.
 
     Parameters
@@ -465,41 +465,41 @@ def Extract_flow_at_outlet(plot_ini='plot-flow-precip.ini',
         TOPKAPI_ini file
     version_ini : string
         Versin number for the current run
-    
+
     Returns: nothing
     Produces: Flow duration graph and one XLS-file.
     """
     mp = memory_usage_psutil()
 #    print 'Process memory at %dMB (after loading all modules)' %mp
-        
+
     config = SafeConfigParser()
-    
+
     # Read the version number of the run to be processed
     config.read(ver_ini)
-    
+
     ver_num = config.get('version_number','version')
-    
-    # Read the plot_ini file 
+
+    # Read the plot_ini file
     config.read(plot_ini)
-    
+
     file_Qsim  = config.get('files','file_Qsim')
     file_rain  = config.get('files','file_rain')
 
     group_name = config.get('groups','group_name')
-    
+
     outlet_ID  = config.getint('parameters', 'outlet_ID')
-    
+
     run_name   = os.getcwd().split('\\')[-2].split('_')[1]
 
     fn_Qout    = 'results\\Qsim_outlet_'+run_name+'_'+str(ver_num)+'.xlsx'
     fn_Qout2   = 'results\\Qsim_outlet_Static.xlsx'
-    
+
 #==============================================================================
 #     Read some parameters from the TOPKAPI.ini file
 #==============================================================================
     config = SafeConfigParser()
     config.read(topkapi_ini)
-    
+
 #    print 'Read the file ', topkapi_ini
     #print 'config', config.read(topkapi_ini)
 
@@ -531,7 +531,7 @@ def Extract_flow_at_outlet(plot_ini='plot-flow-precip.ini',
     except NoSectionError:
         Piezos_on = 0
         print 'No piezometer locations specified...'
-    
+
     if Piezos_on:
         try:
             config.read(plot_ini)
@@ -547,7 +547,7 @@ def Extract_flow_at_outlet(plot_ini='plot-flow-precip.ini',
                         l_tmp1 = l.replace('/', '\t').split('\t')
                         l_tmp2 = [float(x) for x in l_tmp1]
                         pzo_data.append(l_tmp2)
-                        
+
                     else:
                         print 'first line', l
                         pzo_hdr  = [int(x) for x in l.split('\t')[1:]]
@@ -567,7 +567,7 @@ def Extract_flow_at_outlet(plot_ini='plot-flow-precip.ini',
                         pzo_hdr_s += str(i)+', '
                     for i in piezos:
                         piezos_s += str(i)+', '
-                    
+
                     raise ValueError('At least one of the piezometer names %s \
 specified in the piezometer file %s mismatch with the the piezometer cell \
 lables are spcified %s specified in %s ' \
@@ -575,12 +575,12 @@ lables are spcified %s specified in %s ' \
 
     X,Dt,alpha_s,alpha_o,alpha_c,A_thres,W_min,W_max\
       = pm.read_global_parameters(file_global_param)
-    
+
     ar_cell_label, ar_coorx, ar_coory, ar_lambda, ar_Xc, ar_wwb, \
     ar_tan_beta, ar_tan_beta_channel, ar_L0, ar_Ks0, ar_theta_r, \
     ar_theta_s, ar_n_o0, ar_n_c0, ar_cell_down, ar_pVs_t0, ar_Vo_t0, \
     ar_Qc_t0, ar_kc, psi_b, lamda = pm.read_cell_parameters(param_fname)
-    
+
     mp = memory_usage_psutil()
 #    print 'Process memory at %dMB (after reading cell parameter file)' %mp
 #==============================================================================
@@ -589,12 +589,12 @@ lables are spcified %s specified in %s ' \
     ftype   = 'float32'   # float type
     # SSI
     ar_SSI_s = np.average(extract_ssi(topkapi_ini),axis=1)
-    
+
     # Rainfall
     with h5py.File(file_rain, 'r') as f_r:
         ndar_rainfl = f_r['/'+group_name+'/']['rainfall'].value.astype(dtype=ftype)
     ar_rain = np.average(ndar_rainfl, axis=1)    # in mm/TMSP
-    
+
     mp = memory_usage_psutil()
 #    print 'Process memory at %dMB (after reading rainfall data)' %mp
 #    h5file_in = h5.openFile(file_rain, mode='r')
@@ -606,7 +606,7 @@ lables are spcified %s specified in %s ' \
 #    ar_rain = np.average(ndar_rainfl, axis=1)
 #    print 'ar_rain ', ar_rain.shape
     #print 'ndar_rainfl.shape', ndar_rainfl.shape
-    
+
     #Read the simulated Q channel data
 #    ndar_Qc_out = ut.read_one_array_hdf(file_Qsim,'/Channel/','Qc_out')
 #    ar_Qsim = ndar_Qc_out[1:,outlet_ID]
@@ -620,7 +620,7 @@ lables are spcified %s specified in %s ' \
     mt      = 250      # Memory treshold in MB
     b2mb    = float(2**20)  # Bytes to MB devision factor
     #shapexy = (7218, 8877)
-    
+
     #mp = memory_usage_psutil()
     #print 'Process memory at %dMB' %mp
 
@@ -641,7 +641,7 @@ lables are spcified %s specified in %s ' \
             ar_Echn = np.sum(f['Channel']['Ec_out'].value[1:,], axis=1).astype(dtype=ftype)
             mc += ar_Echn.nbytes/b2mb   # Units in m3/TMSP
 #            memcheck_process(mp)
-#            if ndar_ET_out.nbytes/b2mb > 1024:                
+#            if ndar_ET_out.nbytes/b2mb > 1024:
 #                raise MemoryWillRunOutError
 #            memcheck_process(mp)
             mp = memory_usage_psutil()
@@ -653,44 +653,44 @@ lables are spcified %s specified in %s ' \
 #            memcheck_process(mp)
             mp = memory_usage_psutil()
 #            print 'Process memory at %dMB - ndar_Qs_out' %mp
-            
+
             ndar_Qs_out_ = f['Soil']['Qs_outII'].value.astype(dtype=ftype)
             mc += ndar_Qs_out_.nbytes/b2mb
 #            memcheck_process(mp)
             mp = memory_usage_psutil()
-            
+
             ndar_Vs_cel = f['Soil']['V_s'].value.astype(dtype=ftype)
             ar_Vs = np.sum(ndar_Vs_cel[1:,], axis=1)   # in m3/catchment
             mc += ndar_Vs_cel.nbytes/b2mb
 #            memcheck_process(mp)
             mp = memory_usage_psutil()
-            
+
             ndar_Vs_cel_ = f['Soil']['V_sII'].value.astype(dtype=ftype)
             ar_Vs = np.sum(ndar_Vs_cel_[1:,], axis=1)   # in m3/catchment
             mc += ndar_Vs_cel_.nbytes/b2mb
 #            memcheck_process(mp)
             mp = memory_usage_psutil()
 #            print 'Process memory at %dMB - ndar_Vs_cel' %mp
-            
+
             ndar_Qo_out = f['Overland']['Qo_out'].value.astype(dtype=ftype)
             mc += ndar_Qo_out.nbytes/b2mb
 #            memcheck_process(mp)
             mp = memory_usage_psutil()
 #            print 'Process memory at %dMB - ndar_Qo_out' %mp
-            
+
             if Dams_on:
                 ndar_Vd_cel = f['Dam']['V_d'].value.astype(dtype=ftype)
                 mc += ndar_Vd_cel.nbytes/b2mb
 #                memcheck_process(mp)
                 mp = memory_usage_psutil()
 #                print 'Process memory at %dMB - ndar_Vd_cel' %mp
-                
+
                 ndar_Qd_inp = f['Dam']['Qd_in'].value.astype(dtype=ftype)
                 mc += ndar_Qd_inp.nbytes/b2mb
 #                memcheck_process(mp)
                 mp = memory_usage_psutil()
 #                print 'Process memory at %dMB - ndar_Qd_inp' %mp
-                
+
                 ndar_Qd_out = f['Dam']['Qd_out'].value.astype(dtype=ftype)
                 mc += ndar_Qd_out.nbytes/b2mb
 #                memcheck_process(mp)
@@ -728,7 +728,7 @@ lables are spcified %s specified in %s ' \
                   'ndar_Qd_out']
         groups = ['/',     '/Soil/','/Soil/',  'Soil','Soil', 'Overland','Dam','Dam',  'Dam']
         entris = ['ET_out','Qs_out','Qs_outII','V_s', 'V_sII','Qo_out',  'V_d','Qd_in','Qd_out']
-        
+
         i = 0
         with h5py.File(file_Qsim, 'r') as f:
             for n in varnms:
@@ -747,10 +747,10 @@ lables are spcified %s specified in %s ' \
             print r+1, ". run garbage collector: collected %d objects." % (collected)
         mp = memory_usage_psutil()
         print 'Process memory at %dMB - after GC' %mp
-        
+
         for n in varnms:
             exec 'locals()[n] = np.memmap(\'Results/TMP/\'+n, dtype=ftype, mode=\'r\', shape=shapexy)'
-        
+
         '''
         ndar_ET_out    = np.memmap('Results\\TMP\\ndar_ET_out', dtype=ftype, mode='w+', shape=shapexy)
         ndar_ET_out.flush()
@@ -824,22 +824,22 @@ lables are spcified %s specified in %s ' \
 #    ar_Qsim = ndar_tmp[1:,]
 #    ar_ET_a = np.average(ndar_tmp[1:,], axis=1)
 #    print 'Reading ET_a data complete..'
-    
+
     with h5py.File(file_Qsim, 'r') as f:
         ndar_ET_out = f['/']['ET_out'].value
         ar_ET_a = np.average(ndar_ET_out[1:,], axis=1)
-        
+
 #    # Read evaporation from channel cells (m3/d)
 #    node = h5file_in.getNode('/Channel/','Ec_out')
 #    ndar_Ec_out = node.read()
 #    ar_Echn = np.average(ndar_Ec_out[1:,], axis=1)
 #    print 'Read Ec data..'
-    
+
     # New approach using read one array method
 #    ndar_tmp = ut.read_one_array_hdf(file_Qsim,'/Channel/','Ec_out')
 #    ar_Echn = np.average(ndar_tmp[1:,], axis=1)
 #    print 'Reading ET_a data complete..'
-    
+
     with h5py.File(file_Qsim, 'r') as f:
         ar_Echn = np.average(f['Channel']['Ec_out'].value[1:,], axis=1)
 
@@ -873,13 +873,13 @@ lables are spcified %s specified in %s ' \
 #        ndar_Vd_cel = node.read()
         with h5py.File(file_Qsim, 'r') as f:
             ndar_Vd_cel = f['Dam']['V_d'].value
-    
+
         # Read the dam inflow
 #        node = h5file_in.getNode('/Dam/','Qd_in')
 #        ndar_Qd_inp = node.read()
         with h5py.File(file_Qsim, 'r') as f:
             ndar_Qd_inp = f['Dam']['Qd_in'].value
-    
+
 #        node = h5file_in.getNode('/Dam/','Qd_out')
 #        ndar_Qd_out = node.read()
         with h5py.File(file_Qsim, 'r') as f:
@@ -897,7 +897,7 @@ lables are spcified %s specified in %s ' \
 
     ndar_SSI_cl  = np.zeros((n_rec, nb_cells)).astype(dtype=ftype)
     ndar_SSI_cl_ = np.zeros((n_rec, nb_cells)).astype(dtype=ftype)
-    
+
     div = (ar_theta_s*fac_th_s - ar_theta_r)*ar_L0*fac_L*_1cell_area
 
     for r in xrange(n_rec):
@@ -908,7 +908,7 @@ lables are spcified %s specified in %s ' \
 
     # Check if outflow cell reports runoff
     nb_Qflow = ar_Qsim[ar_Qsim > 0.]
-    
+
     if len(nb_Qflow) < ar_Qsim.shape[0]:
         print 'probably wrong cell number for outflow node:'
         print 'len(nb_Qflow) < nb_cells', len(nb_Qflow), ar_Qsim.shape[0]
@@ -919,25 +919,25 @@ lables are spcified %s specified in %s ' \
 
     if Dams_on:
         ar_dam_u = np.unique(ar_wwb[ar_wwb>199])
-        
+
         dam_idx = []   # a list unique cell labels for all dams
-        
+
         for d in ar_dam_u:
             d_tmp = np.where(ar_wwb == d)[0]
             dam_idx.append(d_tmp)
             #dam_idx.append(d_tmp[0]) for some reason does not work.
-        
+
         Vd_cel_d = []
-        Qd_input = []    
+        Qd_input = []
         Qd_outpt = []
-    
+
         nb_dam = len(ar_dam_u)
         print 'Number of Dams', nb_dam
         print 'Cell labels dams', dam_idx
         #print 'Cell labels dams', dam_idx[0]
         #print 'size of first dam array:', ndar_Vd_cel[1:,dam_idx[0]].size
         #print ndar_Vd_cel[1:,dam_idx[0]]
-    
+
         for d in xrange(nb_dam):
             #print ndar_Vd_cel[1:,dam_idx[d]]
             #print dam_idx[d]
@@ -958,11 +958,11 @@ lables are spcified %s specified in %s ' \
 
     ar_wwb_u = np.unique(ar_wwb[ar_wwb>0])
     ar_wwb_u = ar_wwb_u[ar_wwb_u<200]
-    
+
     tmp = [int(x) for x in ar_wwb_u]
-    
+
     #print 'Extracting information from WWB-units', tmp
-    
+
     wwb_idx = []
 
     for u in ar_wwb_u:
@@ -970,7 +970,7 @@ lables are spcified %s specified in %s ' \
         wwb_idx.append(u_tmp)
 
     nb_wwb = len(ar_wwb_u)
-    
+
     ET_out_w  = []  # units were mm/d -> m/d. m/d*m2 = m3/d
     Vs_cel_w  = []  # units already in m3
     Vs_cel_w_ = []  # units already in m3
@@ -978,7 +978,7 @@ lables are spcified %s specified in %s ' \
     SSIndx_w  = []  # Dimensionless
     SSIndx_w_ = []  # Dimensionless
     wwbu_A_w  = []  # Area of each wetland unit
-    
+
     for w in xrange(nb_wwb):
         ET_out_w.append(np.sum(ndar_ET_out[1:,wwb_idx[w]], axis=1)*1e-3*X**2)
         Vs_cel_w.append(np.sum(ndar_Vs_cel[1:,wwb_idx[w]], axis=1))
@@ -990,7 +990,7 @@ lables are spcified %s specified in %s ' \
             Rainfl_w.append(np.sum(ndar_rainfl[:,wwb_idx[w]], axis=1)*1e-3*X**2)
         else:
             Rainfl_w.append(ar_rain*len(wwb_idx[w])*1e-3*X**2)
-    
+
     ET_out_w  = np.array(ET_out_w)    # m3/d
     Vs_cel_w  = np.array(Vs_cel_w)    # m3
     Vs_cel_w_ = np.array(Vs_cel_w)    # m3
@@ -998,7 +998,7 @@ lables are spcified %s specified in %s ' \
     SSIndx_w  = np.array(SSIndx_w)    # Dimensionless
     SSIndx_w_ = np.array(SSIndx_w)    # Dimensionless
     wwbu_A_w  = np.array(wwbu_A_w)    # m2
-    
+
 #    print 'shape of SSIndx_w:', SSIndx_w.shape
 #    print 'shape of Vs_cel_w:', Vs_cel_w.shape
 
@@ -1010,7 +1010,7 @@ lables are spcified %s specified in %s ' \
         for ee in e:
             if type(ee) != np.float32:
                 print 'ET AAAAAAAAALAAAAAAAAAAAAARM\n\nALAAAAAAAAAAAAAAAAAAAAAARM\n'
-    
+
     #print 'wwb_idx', wwb_idx
     # print 'len ET_out_w', len(ET_out_w)
     # print 'shape of each unit:', [x.shape[0] for x in ET_out_w]
@@ -1032,15 +1032,15 @@ lables are spcified %s specified in %s ' \
     ar_cell_labl_W = ar_cell_label[ar_wwb > 0]
     #ar_cell_catch  = ar_cell_label[ar_lambda < 1] # only cells without rivers
     ar_cell_labl_R = ar_cell_label[ar_lambda==1]
-    
+
     # Make list of indices wehre ar_wwb is a balacne area
     # BCW = Boundary Catchment -> Wetland
     # BWC = Boundary Wetland   -> Catchment
-    
+
     ar_bcw = []
     ar_bwc = []
     ar_bwr = []
-    
+
     for u in xrange(nb_wwb):
         bcw_tmp = []
         bwc_tmp = []
@@ -1052,7 +1052,7 @@ lables are spcified %s specified in %s ' \
                 bwc_tmp.append(ar_cell_label[i])
         ar_bcw.append(bcw_tmp)
         ar_bwc.append(bwc_tmp)
-        
+
         bwr_tmp = []    # Boundary Wetland to River
         #ar_cell_labl_C_u = ar_cell_label[wwb_idx < 1]
         for i in xrange(len(ar_cell_label)):
@@ -1078,7 +1078,7 @@ lables are spcified %s specified in %s ' \
     Qs_in_r  = np.zeros((nb_wwb, n_rec))   # from m3/s to m3/d
     Qs_in_r_ = np.zeros((nb_wwb, n_rec))   # from m3/s to m3/d
     Qo_in_r  = np.zeros((nb_wwb, n_rec))   # from m3/s to m3/d
-    
+
     for u in xrange(nb_wwb):
         Qs_in_w[u]  = np.sum(ndar_Qs_out[1:,ar_bcw[u]],  axis=1)*Dt
         Qs_ot_w[u]  = np.sum(ndar_Qs_out[1:,ar_bwc[u]],  axis=1)*Dt
@@ -1090,7 +1090,7 @@ lables are spcified %s specified in %s ' \
         Qs_in_r_[u] = np.sum(ndar_Qs_out_[1:,ar_bwr[u]], axis=1)*Dt
         Qo_in_r[u]  = np.sum(ndar_Qo_out[1:,ar_bwr[u]],  axis=1)*Dt
         # Units in m3/d
-    
+
     # Make lists for coordinates
     ar_bcw_x,ar_bcw_y,ar_bwc_x,ar_bwc_y,bcw_wwb_l,bwc_wwb_l = [],[],[],[],[],[]
     ar_wwb_x, ar_wwb_y, ar_wwb_l       = [], [], []
@@ -1099,8 +1099,8 @@ lables are spcified %s specified in %s ' \
     ar_cdC_x, ar_cdC_y, ar_cdC_l       = [], [], []
     ar_cd_x, ar_cd_y, ar_cd_l          = [], [], []
     ar_cl_x, ar_cl_y, ar_cl_l          = [], [], []
-    
-    
+
+
     for u in xrange(nb_wwb):
         for c in ar_bcw[u]:
             x_t, y_t = ut.show_cell_cords(ar_cell_label, c, ar_coorx, ar_coory)
@@ -1119,43 +1119,43 @@ lables are spcified %s specified in %s ' \
             ar_wwb_x.append(x_t[0])
             ar_wwb_y.append(y_t[0])
             ar_wwb_l.append(ar_wwb_u[u])
-    
+
     for cccc in ar_cell_labl_C:
         x_t, y_t = ut.show_cell_cords(ar_cell_label, cccc, ar_coorx, ar_coory)
         ar_wwb_C_x.append(x_t[0])
         ar_wwb_C_y.append(y_t[0])
         ar_wwb_C_l.append(cccc)
-    
+
     for ccccc in ar_cell_labl_W:
         x_t, y_t = ut.show_cell_cords(ar_cell_label, ccccc, ar_coorx, ar_coory)
         ar_wwb_W_x.append(x_t[0])
         ar_wwb_W_y.append(y_t[0])
         ar_wwb_W_l.append(ccccc)
-    
+
     for cccccc in ar_cell_down_C:
         label_tmp = ar_cell_label[np.where(ar_cell_down==cccccc)[0][0]]
         x_t, y_t = ut.show_cell_cords(ar_cell_label, label_tmp, ar_coorx, ar_coory)
         ar_cdC_x.append(x_t[0])
         ar_cdC_y.append(y_t[0])
         ar_cdC_l.append(cccccc)
-        
+
     for ccccccc in ar_cell_down:
         label_tmp = ar_cell_label[np.where(ar_cell_down==ccccccc)[0][0]]
         x_t, y_t = ut.show_cell_cords(ar_cell_label, label_tmp, ar_coorx, ar_coory)
         ar_cd_x.append(x_t[0])
         ar_cd_y.append(y_t[0])
         ar_cd_l.append(ccccccc)
-    
+
     for cccccccc in ar_cell_label:
         x_t, y_t = ut.show_cell_cords(ar_cell_label, cccccccc, ar_coorx, ar_coory)
         ar_cl_x.append(x_t[0])
         ar_cl_y.append(y_t[0])
         ar_cl_l.append(cccccccc)
-        
+
     #print ar_bcw_x, ar_bcw_y, ar_bwc_x, ar_bwc_y
-    
+
     #ar_BCW = ar_cell_down_C[ar_cell_down_C in ]
-    
+
 #    for cd in ar_cell_down_C:
 #        if cd in ar_wwb
 
@@ -1189,7 +1189,7 @@ lables are spcified %s specified in %s ' \
     #print 'sum ar_Qsim_m3: ', np.sum(ar_Qsim_m3)
     ar_Qsim_mm = (ar_Qsim_m3/A_catch)*1e3       # mm/s
     Qsim_mm    = np.sum(ar_Qsim_mm)
-    
+
     #print 'Qsim_mm: ', Qsim_mm
     P_mm       = np.sum(ar_rain)
     ETa_mm     = np.sum(ar_ET_a)
@@ -1198,7 +1198,7 @@ lables are spcified %s specified in %s ' \
     print 'Ech_m3', Ech_m3
     Ech_mm     = (Ech_m3/A_catch)*1e3     # m3 -> mm
     print 'Ech_mm', Ech_mm
-    
+
     Vs_0       = ar_Vs[0]
     Vs_1       = ar_Vs[-1]
 #    print 'len(ar_Vs)', len(ar_Vs)
@@ -1213,8 +1213,8 @@ lables are spcified %s specified in %s ' \
 #    print 'nb_cells, Vs_0, Vs_1, dVs_m3, dVs_mm'
 #    print nb_cells, Vs_0, Vs_1, dVs_m3, dVs_mm
 #    for i in xrange(n_rec):
-#        print ar_Vs[i]        
-    
+#        print ar_Vs[i]
+
 #==============================================================================
 #   WRITING RESULTS TO XLS FILE
 #==============================================================================
@@ -1284,7 +1284,7 @@ lables are spcified %s specified in %s ' \
                 ws_14.write(l+2, nb_var*h+1+3, float(Qd_input[h,l])*Dt)
                 ws_14.write(l+2, nb_var*h+1+4, float(Qd_outpt[h,l]))
                 ws_14.write(l+2, nb_var*h+1+5, float(Qd_outpt[h,l])*Dt)
-        
+
         # DAM losses:
         D_dam_loss_mm = ((Qd_in_sum-Qd_ot_sum)/A_catch)*1e3
 
@@ -1302,11 +1302,11 @@ lables are spcified %s specified in %s ' \
         piezosSSI = ndar_SSI_cl[:,piezos]
         ws_15.write(0, 0, 'TSTP')
         ws_15.write(0, 1, 'Date')
-        
-        
+
+
         print 'piezos_Vs.shape',piezos_Vs.shape
         print 'piezosSSI.shape',piezosSSI.shape
-        
+
         #include SSI
         #ndar_SSI_cl
         # x = column
@@ -1325,7 +1325,7 @@ lables are spcified %s specified in %s ' \
         if pzo_plot_on:
 #            pzo_hdr
 #            pzo_data
-            
+
             date_s   = [int(s) for s in start_stamp.split('/')]
             date_s   = dtm.datetime(date_s[2],date_s[1],date_s[0])
             dat      = date_s
@@ -1335,9 +1335,9 @@ lables are spcified %s specified in %s ' \
             for i in xrange(n_rec):
                 dat = dat + dtm.timedelta(seconds=Dt)
                 date_sim.append(dat)
-            
+
             ar_date_mon = pzo_data[:,0:3]
-            
+
             for t in xrange(pzo_data.shape[0]):
 #                print ar_date_mon[t,0], ar_date_mon[t,1], ar_date_mon[t,2]
                 date_mon.append(dtm.datetime(int(ar_date_mon[t,0]),\
@@ -1361,7 +1361,7 @@ lables are spcified %s specified in %s ' \
 
                 lines += ax1.plot(date_sim,sim_pzo_SSI,col_sim[i],linewidth=2, linestyle='dotted')
                 lines += ax1.plot(date_mon,mon_pzo_SSI,col_mon[i],linewidth=1)
-                
+
                 t_leg.append(r'$Simulated~SSI~%s$' %str(piezos[i]))
                 t_leg.append(r'$Monitored~SSI~%s$' %str(piezos[i]))
 
@@ -1372,7 +1372,7 @@ lables are spcified %s specified in %s ' \
             leg = ax1.get_legend()
             leg.get_frame().set_alpha(0.75)
 #            plt.show()
-            
+
             fig_fn = 'Results\\PZM_vs_SSI_V_'+str(ver_num)+'.png'
             fig.savefig(fig_fn, dpi=200)
 
@@ -1382,7 +1382,7 @@ lables are spcified %s specified in %s ' \
 #==============================================================================
 
     # first make a list of all variables which need explanation
-    
+
     # Tabs
     tabs = ['META','P_Qsim','Qdur_m','WWB_d','WWB_m','WWB_y','WWB','WWB_mm',\
             'WWB_d_mm','WWB_m_mm','WWB_y_mm','cBWin','cBWout','cWWB','cTRD',\
@@ -1439,9 +1439,9 @@ ut, output, volume and full supply level for all dams']
         ws_1.write(r+1, 4, float(ar_Vs[r]))      # m3 for entire catchment
         ws_1.write(r+1, 5, float(ar_SSI_s[r]))
         ws_1.write(r+1, 6, float(ar_ET_a[r]))
-    
+
     #np.savetxt('test_Vs', ar_Vs, fmt='%.4f')
-    
+
     c_o = 7    # Column offsetter +1
 
     #===========================================================================
@@ -1451,18 +1451,18 @@ ut, output, volume and full supply level for all dams']
     # [dd mm yyyy]
 
     #start_stamp = '22/8/2013'
-    
+
     split_mon = int(split_month)
-    
+
     stmp = []
     for s in start_stamp.split('/'):
         stmp.append(int(s))
         #print 'stmp', stmp
-        
+
     start_date = dtm.datetime(stmp[2],stmp[1],stmp[0])
-    
+
     print 'start date:', start_date.strftime("%d %b %Y")
-    
+
     # Create datetime object for each simulated day
     tme = start_date
     D_day = []
@@ -1511,15 +1511,15 @@ ut, output, volume and full supply level for all dams']
     Y_mon = []    # Array of all years in monthly resolution
     #check how many months there are going to be..
     n_mon = 0
-    n_yer = 0    
+    n_yer = 0
     cnt_y = 0
     cnt_d = 0
     cnt_m = 0
     mon_t = 0
     years = []
-    
+
     # Take time increment (time step) in seconds from global parameter file (Dt)
-    
+
     for i in xrange(n_rec):
         cnt_d += 1
         tme = tme + dtm.timedelta(seconds=Dt)
@@ -1544,25 +1544,25 @@ ut, output, volume and full supply level for all dams']
     #print 'y_first', y_first
     Q_mon2D = np.zeros((n_yer, 12))*-9999.
     yrs = []
-    
+
     #print np.min(years), np.max(years)+1
-    
+
     if len(years) > 0:
         for y in xrange(np.min(years), np.max(years)+1):
             yrs.append(y)
-        
-    
+
+
     yrs = np.array(yrs)
-    
+
     # 3D Conteiner for month-averages (12 x WWB x vars)
     # for temporary and permanent
-    
+
     nb_vars = 9
-    
+
     M_WWB_V = np.ones((12,nb_wwb,nb_vars))
     M_count = np.zeros((12))
-    
-    
+
+
     Q_mon_p = np.zeros((12, 10))*-9999.
 
     cnt_d_m   = 0
@@ -1572,21 +1572,21 @@ ut, output, volume and full supply level for all dams']
     cnt_y_all = 0
     tme       = start_date
     t_e       = tme + dtm.timedelta(seconds=Dt*n_rec)    # End time
-    
+
     print "...last time stamp:", t_e.strftime("%d %b %Y")
-    
+
     t_e_mon   = t_e.month
     t_e_day   = t_e.day
     t_e_yer   = t_e.year
     t_e_LDOF  = ut.last_day_of_month(t_e)    #t_e_LDOF = end time last day of month
-    
+
     if t_e_day < t_e_LDOF:
         exclude_last_mon = 1
     else:
         exclude_last_mon = 0
-    
+
     avg_m_start = 0
-    
+
     Pt_m_w    = np.zeros((nb_wwb, mon_t), dtype=ftype)
     Pt_y_w    = np.zeros((nb_wwb, cnt_y), dtype=ftype)
     Ea_m_w    = np.zeros((nb_wwb, mon_t), dtype=ftype)
@@ -1595,7 +1595,7 @@ ut, output, volume and full supply level for all dams']
     Vs_m_w_   = np.zeros((nb_wwb, mon_t), dtype=ftype)
     Vs_y_w    = np.zeros((nb_wwb, cnt_y), dtype=ftype)
     Vs_y_w_   = np.zeros((nb_wwb, cnt_y), dtype=ftype)
-    
+
     Qs_in_m_w  = np.zeros((nb_wwb, mon_t), dtype=ftype)
     Qs_in_m_w_ = np.zeros((nb_wwb, mon_t), dtype=ftype)
     Qs_ot_m_w  = np.zeros((nb_wwb, mon_t), dtype=ftype)
@@ -1618,10 +1618,10 @@ ut, output, volume and full supply level for all dams']
     SSInx_m_w_ = np.zeros((nb_wwb, mon_t), dtype=ftype)
     SSInx_y_w  = np.zeros((nb_wwb, cnt_y), dtype=ftype)
     SSInx_y_w_ = np.zeros((nb_wwb, cnt_y), dtype=ftype)
-    
-    #print 'nb_wwb:', nb_wwb 
+
+    #print 'nb_wwb:', nb_wwb
     #print 'mon_t', mon_t
-    
+
     for i in xrange(n_rec):
         cnt_d_m += 1
         cnt_d_y += 1
@@ -1634,7 +1634,7 @@ ut, output, volume and full supply level for all dams']
             mon_p = mon
             yer_p = yer
         # only start putting values into month-averages if day 1 was passed
-            
+
 #            make another condition here to not include the last values unless the month will be complete.. use end time t_e for that.
         if day == 1:# or nb_days_left > days_last_month...must be simpler:
             avg_m_start = 1
@@ -1805,7 +1805,7 @@ ut, output, volume and full supply level for all dams']
 
     #print 'max year Y_mon:', np.max(Y_mon)
     #print 'max year yers:', np.max(yrs)
-    
+
     for m in xrange(n_mon):
         if Y_mon[m] in yrs:
             try:
@@ -1833,7 +1833,7 @@ ut, output, volume and full supply level for all dams']
     #print 'D_mon:', len(D_mon)
     #print 'P_mon:', len(P_mon)
     #print 'Q_mon:', len(Q_mon)
-    
+
     ws_1.set_column(1,1,10)
     for rr in xrange(n_rec):
         ws_1.write(rr+1, 1, D_day[rr], date_format)
@@ -1865,7 +1865,7 @@ ut, output, volume and full supply level for all dams']
         ws_1.write(1, c_o+13, float(P_mm - Qsim_mm - ETa_mm - Ech_mm - dVs_mm))
     ws_1.write(1, c_o+14, float(ar_Qs_mm))
     ws_1.write(1, c_o+15, float(ar_Qo_mm))
-    
+
     ### Write water balance components expressed in % of P
     ws_1.write(5, c_o+7,  float(P_mm/P_mm)*100.)
     ws_1.write(5, c_o+8,  float(Qsim_mm/P_mm)*100.)
@@ -1883,10 +1883,10 @@ ut, output, volume and full supply level for all dams']
     ws_1.write(5, c_o+15, float(ar_Qo_mm/P_mm)*100.)
 
     percentage_hdr = ['P','Q','ETa','Ech','dVsoil','DAM_loss','Error','Qs','Qo']
-    
+
     for h in xrange(len(percentage_hdr)):
         ws_1.write(4, c_o+7+h,percentage_hdr[h])
-    
+
 #    for c in xrange(12):
 #        mon_tmp = []
 #        for r in xrange(n_months):
@@ -1917,7 +1917,7 @@ ut, output, volume and full supply level for all dams']
                     Q_mon_p[m-1, p-1] = 0.0
                 ws_2.write(rows[i], p, Q_mon_p[m-1, p-1], st_sc_frmat)
             ws_2.write(rows[i], 13, Q_mon_avg_tmp, st_sc_frmat)
-    
+
     for p in xrange(1,11):
         if p == 10:
             ws_2.write(0, p, str(99)+'%')
@@ -1939,15 +1939,15 @@ ut, output, volume and full supply level for all dams']
     # Each unit has 13 n's and 13 i's both for mm and m3 make 52 rows.
     # columns = max nb of units = 200:
     #ETa, Vs, Qs_in, Qs_out, Qo_in, Qo_out, Qs_in_r, Qo_in_r, Rain, WBd, SSI, N_yrs, Catchment
-    #rt = run type either n or i    
-    
+    #rt = run type either n or i
+
     # Do the same for month averages which are averaged sums (m3/month) for each month
     # i.e. all Jan's, Feb's, etc...
     rt = run_name[0]
-    
+
     print 'Run type =', rt
 #    print 'n_rec =', n_rec
-    
+
     if n_rec > 500 and (rt == 'n' or rt == 'i') and not run_name[1] == 'P':
         # Cheap fix to get some of the nWWBU into iWWBU as they are unimpacted
         # Disable this for other projects than AMF
@@ -1960,23 +1960,23 @@ ut, output, volume and full supply level for all dams']
         rowsm = 23
         spxy  = (rows, cols)
         spxym = (rowsm, colsm)
-        
+
         AR_WWB_y_fn = os.getcwd()+'\\..\\..'+'\\Final_Results\\AR_WWB_y'
         AR_WWB_m_fn = os.getcwd()+'\\..\\..'+'\\Final_Results\\AR_WWB_m'
-    
+
         if os.path.exists(AR_WWB_y_fn):
             AR_WWB_y = np.fromfile(AR_WWB_y_fn,dtype=ftype).reshape(spxy)
         else:
             # Create a 2D array which can hold all the data
             AR_WWB_y = np.ones(spxy,dtype=ftype)*-999.
-        
+
         # same for AR_WWB_m_fn
         if os.path.exists(AR_WWB_m_fn):
             AR_WWB_m = np.fromfile(AR_WWB_m_fn,dtype=ftype).reshape(spxym)
         else:
             # Create a 2D array which can hold all the data
             AR_WWB_m = np.ones(spxym,dtype=ftype)*-999.
-        
+
         # Make a var list to lable vars in left most column
         hdr_AR_WWB_m_n = ['WWB_#','Month','Rain','ETa','Qs_in','Qo_in',
                           'Qs_out','Qo_out','Qs_in_r','Qo_in_r','SSI',
@@ -1995,7 +1995,7 @@ ut, output, volume and full supply level for all dams']
               '(m3/','(m3/','(m3/','(m3/','(m3/','(m3/','-']
     umm    = ['(mm/','(mm)' ,'(mm/','(mm/','(mm/','(mm/','(mm/','(mm/',
               '(mm/','(mm/','(mm/','(mm/','(mm/','(mm/','-']
-    
+
     nb_var = len(ws_hdr)
 
     u_m3_d, u_m3_m, u_m3_y, u_mm_d, u_mm_m, u_mm_y = [],[],[],[],[],[]
@@ -2016,12 +2016,12 @@ ut, output, volume and full supply level for all dams']
             u_mm_m.append(umm[u])
             u_mm_y.append(umm[u])
         cnt += 1
-    
+
     er_f = '=(INDIRECT(ADDRESS(ROW(),COLUMN()-9))-INDIRECT(ADDRESS(ROW()-1,\
 COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
-    
+
     # divide the areas wwbu_A_w by 1000 to obtain mm instead of meter
-    
+
     A_2_mm_w = np.zeros(wwbu_A_w.shape)
     for i in xrange(len(wwbu_A_w)):
         A_2_mm_w[i] = wwbu_A_w[i]*1E-3
@@ -2111,7 +2111,7 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
                 ws_55.write_formula(l+2, nb_var*h+1+10, er_f)
             ws_55.write(l+2, nb_var*h+1+11, SSIndx_w[h,l])
             ws_55.write(l+2, nb_var*h+1+12, SSIndx_w_[h,l])
-        
+
         # Write WWB monthly data - absolute volumes
         for l in xrange(len(D_mon)):
             wb_tmp_m = Pt_m_w[h,l]-float(Ea_m_w[h,l])-Qs_ot_m_w[h,l]+\
@@ -2337,7 +2337,7 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
                     AR_WWB_m[1,wwb*12+m] = m+1
                     AR_WWB_m[13:22,wwb*12+m] = M_WWB_V[m,h,:]
                     AR_WWB_m[22,wwb*12+m] = M_count[m]
-                    
+
 #                raise ValueError('This is neither a current stat run nor a \
 #impact run and therefore funciton is terminating...')
 #            print 'shape of AR_WWB_y:', AR_WWB_y.shape
@@ -2348,10 +2348,10 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
         AR_WWB_m.tofile(AR_WWB_m_fn)
         np.savetxt(AR_WWB_y_fn+'_txt.dat', AR_WWB_y)
         np.savetxt(AR_WWB_m_fn+'_txt.dat', AR_WWB_m, delimiter='\t', fmt='%g')
-        
+
         print 'Adding data from %s to the WWB-yearly database' %run_name
         print 'Adding data from %s to the WWB-month database' %run_name
-        
+
 
     # Write some cell lables
     ws_51.write(0,  0, 'WWB')
@@ -2364,9 +2364,9 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
     ws_52.write(0, 13, 'N_yrs')
     ws_52.write(1, 13, 'averaged')
     ws_52.write(0, 14, 'Catchment')
-    
+
     print n_rec, 'records written to the file', fn_Qout
-    
+
 #    plt.clf()
 #    fig = plt.figure()
 #    ax  = fig.add_subplot(111)
@@ -2382,23 +2382,23 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
 
     coords7  = [ar_bwc_x, ar_bwc_y, bwc_wwb_l]
     b_hdrs7  = ['BWout_X', 'BWout_Y', 'WWB_unit']
-    
+
     coords8  = [ar_wwb_x, ar_wwb_y, ar_wwb_l]
     b_hdrs8  = ['WWB_X', 'WWB_Y', 'WWB_unit']
-    
+
     coords9  = [ar_wwb_C_x, ar_wwb_C_y, ar_wwb_C_l]
     b_hdrs9  = ['TRD_X', 'TRD_c_Y', 'Cell_Label']
 
-# this is dublicate of coords7..    
+# this is dublicate of coords7..
 #    coords10 = [ar_wwb_W_x, ar_wwb_W_y, ar_wwb_W_l]
 #    b_hdrs10 = ['WWB_X_W' , 'WWB_W_Y' , 'WWBu_W'  ]
-#    
+#
 #    coords11 = [ar_cdC_x, ar_cdC_y, ar_cdC_l]
 #    b_hdrs11 = ['cd_C_X', 'cd_C_Y', 'cd_C'  ]
-#    
+#
 #    coords12 = [ar_cd_x, ar_cd_y, ar_cd_l]
 #    b_hdrs12 = ['cd_X' , 'cd_Y' , 'cd'   ]
-    
+
     coords13 = [ar_cl_x, ar_cl_y, ar_cl_l]
     b_hdrs13 = ['CellLabel_X', 'CellLabel_Y', 'CellLabel']
 
@@ -2448,9 +2448,9 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
             ws_15.write(ll+2, 1, D_day[ll], date_format)
 
     wb.close()
-    
+
     shutil.copyfile(fn_Qout, fn_Qout2)
-    
+
 
 #===============================================================================
 #     # RIVER - FLOW DURATION CURVE
@@ -2460,23 +2460,23 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
         Q_sim_descnd = Q_sim_sorted[::-1]
         ranks = np.zeros(n_rec)
         frqcy = np.zeros(n_rec)
-        
+
         for i in xrange(n_rec):
             ranks[i] = i
             frqcy[i] = 100 * (i/(n_rec+1.0))
-    
+
         #print 'rank min, max', np.min(ranks), np.max(ranks)
         #print 'Q_sim_descnd min, max, len:', np.min(Q_sim_descnd), np.max(Q_sim_descnd), len(Q_sim_descnd)
         #plt.plot(frqcy, Q_sim_descnd)
-    
+
         fig_x, fig_y = 8, 3
-    
+
         plt.clf()
         fig     = plt.figure()
         fig_p   = plt.gcf()
         fig_p.set_size_inches(fig_x, fig_y)
         #ax1 = fig.add_axes(rect)
-        
+
         ax1 = fig.add_subplot(111)
         '''
         left = 0.125
@@ -2493,23 +2493,23 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
             the amount of height reserved for white space between subplots
         '''
         fig.subplots_adjust(left=0.085, right = 0.97, bottom = 0.14, top = 0.97)
-        
+
         #ax1.set_xscale('log')
         #ax1.set_yscale('log')
         ax1.plot(frqcy, Q_sim_descnd, 'gray', linewidth=1)
-        
+
         #xticklabel = ax1.get_xticks()
-        
+
         # solution example from http://old.nabble.com/Bold-Latex-Tick-Labels-td28037900.html
         #tick_locs = range(start, stop, increment)
-        #plt.xticks(tick_locs, [r"$\mathbf{%s}$" % x for x in tick_locs]) 
-        
+        #plt.xticks(tick_locs, [r"$\mathbf{%s}$" % x for x in tick_locs])
+
         ymax_V = ax1.get_ylim()[1]
         ymin_V = ax1.get_ylim()[0]
-        
+
         xmin_V = ax1.get_xlim()[0]
         xmax_V = ax1.get_xlim()[1]
-        
+
         #ax1.axvlines([10,40,60,90], [x*0.0 for x in xrange(4)], [ymax_V for x in xrange(4)])
         #ax1.vlines([10,40,60,90], ymin_V, ymax_V, color='k', linestyles='solid')
         for v in [10,40,60,90]:
@@ -2519,7 +2519,7 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
         #ax1.boxplot(dataT7C, vert=1, positions = headsT7C, widths=barwidth, whis=1.5)
         #ax1.set_ylim(ymin_V,ymax_V)
         ax1.set_yscale('log')
-        
+
         #print 'Volume Grpah has limits: '
         #print ax1.get_ylim()
         #print '\n\n'
@@ -2557,16 +2557,16 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
                          fontsize=10)
         #ax1.arrow(5, , 0.5, 0.5, head_width=0.05, head_length=0.1, fc='k', ec='k')
         #ax1.grid(True)
-        
+
         #yticks = ax1.set_yticks([0,       depthA      , 200     , 400     , depthB      , 600     , 800     , ymax])
         #ytickslables = ax1.set_yticklabels([r'$Sur.~0$',  r'$A~ 113$', r'$200$', r'$400$', r'$B~ 454$', r'$600$', r'$800$', r'$1000$'])
-        
+
         #xyax  = mplt.gca()
         #xyax.set_ylim(xyax.get_ylim()[::-1])
         #xticklabel = ax1.get_xticklabels()
         #plt.setp(xticklabel, visible=False)
-        
-        
+
+
         #ax1b   = ax1.twiny()
         #ax1b.set_xlabel(r'$Number~ of~ Measurements$')
         ##ax1b.set_xscale('log')
@@ -2578,8 +2578,8 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
         #ax1.relim()
         plt.savefig(fig_fn, dpi=150)
         #print 'Ylim: ', ax1.get_ylim()
-    
-    
+
+
     #t = np.arange(0.0, 100, 0.1)
     #s = np.sin(2*np.pi*t)
     #
@@ -2595,7 +2595,7 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
 
     if n_rec > 500 and (rt == 'n' or rt == 'i') and not run_name[1] == 'P':
         shapexy = (n_rec,200)
-        
+
         # Numpy binary file names
         if rt == 'n':
             AR_SSI_WWB_d_fn = os.getcwd() + '\\..\\..' +\
@@ -2625,21 +2625,21 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
             # Create a 2D array which can hold all the data
             AR_SSI_WWB = np.ones(shapexy,dtype=ftype)*-999.
             AR_FQC_WWB = np.ones(shapexy,dtype=ftype)*-999.
-        
+
         lines   = []
         tab_leg = []
-    
+
         fig_x, fig_y = 8, 8
-    
+
         plt.clf()
         fig     = plt.figure()
         fig_p   = plt.gcf()
         fig_p.set_size_inches(fig_x, fig_y)
-        
+
         ax1 = fig.add_subplot(111)
-    
+
         fig.subplots_adjust(left=0.085, right=0.97, bottom=0.14, top=0.97)
-    
+
         for w in xrange(nb_wwb):
             wu = ar_wwb_u[w]
 #            print 'Wetland Unit Number:', wu
@@ -2648,26 +2648,26 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
             SSI_descnd = SSI_sorted[::-1]
             ranks = np.zeros(n_rec)
             frqcy = np.zeros(n_rec)
-            
+
             for i in xrange(n_rec):
                 ranks[i] = i
                 frqcy[i] = 100 * (i/(n_rec+1.0))
-    
+
             #ra = lambda: random.randint(0,255)
             rgb = '#%02X%02X%02X' % (tuple([random.randint(0,255) for x in xrange(3)]))
-        
+
             lines += ax1.plot(frqcy, SSI_descnd, color=rgb, linewidth=1)
-            
+
             tab_leg.append(r'$\mathbf{Unit~%s}$' %str(ar_wwb_u[w]))
             tab_leg = tab_leg[::-1]
-            
+
             # Following conditions will add data to the SSI_i and SSI_n data
             # bases based on whether or not n-data needs to be written to the
             # SSI_i data base. If so then i_data is prevented to overwrite
             # when i_runs are processed afterwards. Condition is that i_runs
             # have the WWBU_transfer_n2i argument set to true..
             # ToDo: Simplify this somehow!!! Make input file with tranfer units
-            
+
             if rt == 'i' and not run_name[1] == 'P':
                 if WWBU_transfer_n2i:
                     if wu not in WWB_n2i:
@@ -2689,26 +2689,26 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
         ax1.legend(lines, tab_leg, loc='upper right', fancybox=True)
         leg = ax1.get_legend()
         leg.get_frame().set_alpha(0.75)
-        
+
         #xticklabel = ax1.get_xticks()
-        
+
         # solution example from http://old.nabble.com/Bold-Latex-Tick-Labels-td28037900.html
         #tick_locs = range(start, stop, increment)
-        #plt.xticks(tick_locs, [r"$\mathbf{%s}$" % x for x in tick_locs]) 
-        
+        #plt.xticks(tick_locs, [r"$\mathbf{%s}$" % x for x in tick_locs])
+
 #        ymax_V = ax1.get_ylim()[1]
 #        ymin_V = ax1.get_ylim()[0]
         ymin_V, ymax_V = 0, 100
         xmin_V = ax1.get_xlim()[0]
         xmax_V = ax1.get_xlim()[1]
-        
+
         for v in [10,40,60,90]:
             plt.axvline(v, color='k', linestyle='dotted')
-    
+
         ax1.set_xlim(xmin_V,xmax_V)
-        ax1.set_ylim(ymin_V,ymax_V)    
+        ax1.set_ylim(ymin_V,ymax_V)
         #ax1.set_yscale('log')
-    
+
         ax1.set_ylabel(r'$\mathbf{Daily~Saturation~}(\%)$', fontweight='bold')
         ax1.set_xlabel(r'$\mathbf{Exceedance~Probability~}(\%)$', fontweight='bold')
         ax1.set_xticks([x*10 for x in xrange(11)])
@@ -2720,7 +2720,7 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
             yticklabels.append(r'$\mathbf{%s}$' % int(iy))
         ax1.set_xticklabels(xticklabels)
         ax1.set_yticklabels(yticklabels)
-    
+
         yu = (ymax_V-ymin_V)*1e-8
         yl = (ymax_V-ymin_V)*.4e-7
         xy_1 = [(0,yu),(10,yu),(40,yu),(60,yu),(90,yu)]
@@ -2728,7 +2728,7 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
         xy_3 = [(5,yl),(25,yl),(50,yl),(75,yl),(95,yl)]
         text = ['Very\nWet', 'Wet', 'Mid Range',
                 'Dry', 'Very\nDry']
-    
+
         for ar in xrange(len(xy_1)):
             ax1.annotate('', xy=xy_1[ar], xytext=xy_2[ar], xycoords='data',
                     arrowprops=dict(arrowstyle='<->'))
@@ -2740,13 +2740,13 @@ COLUMN()-9)))-INDIRECT(ADDRESS(ROW(),COLUMN()-1))'
             wwb_u_names += str(u)+'_'
         fig_fn = os.getcwd()+'\\..\\..'+'\\Saturation_Duration_Curves\\'+\
                  run_name+'_'+wwb_u_names+'Saturation_Duration.png'
-        
+
         if len(fig_fn) > 250:
             first_len = len(fig_fn) - (len(fig_fn) - 255 + 23)
             fig_fn = fig_fn[:first_len] + fig_fn[-23:]
-    
+
         plt.savefig(fig_fn, dpi=150)
-        
+
 
         print 'Adding data from %s to the SSI-Database' %run_name
 

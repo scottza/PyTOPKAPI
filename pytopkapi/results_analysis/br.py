@@ -49,12 +49,12 @@ def batch_Extract_flow_at_outlet(group, basepath, desired=desired,
     d_NL_i = []
     d_NL_C = []
     sday_a, sday_n, sday_i, sday_C = [], [], [], []
-    
+
     if group == 'n':
         year_desired = int(SD_n.split('/')[-1])
     elif group == 'i':
         year_desired = int(SD_i.split('/')[-1])
-    
+
     def find_year_in_string(string_in):
         iy = ''
         year = 0
@@ -76,7 +76,7 @@ def batch_Extract_flow_at_outlet(group, basepath, desired=desired,
         end5 = (d[-5:-1]+d[-1]).split('_')
         #print end5
         if d in desired:
-#            print d        
+#            print d
             #print 'current dir is', d, 'last 5 split:', end5
             if d[0:3] == project+'_' and len(end5) >= 2:
                 d_NL_a.append(d)
@@ -98,7 +98,7 @@ def batch_Extract_flow_at_outlet(group, basepath, desired=desired,
                 d_NL_C.append(d)
                 sd_tmp = end5
                 if len(sd_tmp) < 2:
-                        sday_C.append('1/7/1993')
+                    sday_C.append('1/7/1993')
                 else:
                     sday_C.append(sd_tmp[1] + '/' + sd_tmp[0] + '/2012')
 
@@ -127,7 +127,7 @@ def batch_Extract_flow_at_outlet(group, basepath, desired=desired,
 
 
 def cal_graphs(group, basepath, desired=desired):
-    
+
     os.chdir(basepath)
     dirs_a = os.listdir(os.getcwd())
     d_NL_a = []
@@ -141,7 +141,7 @@ def cal_graphs(group, basepath, desired=desired):
         end5 = (d[-5:-1]+d[-1]).split('_')
         #print end5
         if d in desired:
-            print d            
+            print d
             #print 'current dir is', d, 'last 5 split:', end5
             if d[0:3] == 'NL_' and len(end5) >= 2:
                 d_NL_a.append(d)
@@ -175,17 +175,17 @@ def SSI_dur_curves_plotter(path, scenario, nb_lines=12, compare=1,
                           per figure are allowed...')
     plt.rc('text', usetex=True)
     plt.rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':'10'})
-    
+
     ftype           = np.float32
 #    n_rec = 7217
-    
+
     if compare:
         AR_SSI_WWB_d_fn = path + 'AR_SSI_WWB_n'
         AR_FQC_WWB_d_fn = path + 'AR_FQC_WWB_n'
         # For NL only
 #        n_rec = ut.file_len('C:\TOPKAPI\\NL_iC89_1993_e\\run_the_model\\forcing_variables\\Create_ETo\\ETo_1993.dat')
         n_rec = ut.file_len(forcing_fn)
-        
+
         shapexy         = (n_rec, 200)
         AR_SSI_WWB_n    = np.fromfile(AR_SSI_WWB_d_fn,dtype=ftype).reshape(shapexy)
         AR_FQC_WWB_n    = np.fromfile(AR_FQC_WWB_d_fn,dtype=ftype).reshape(shapexy)
@@ -225,25 +225,25 @@ def SSI_dur_curves_plotter(path, scenario, nb_lines=12, compare=1,
     #Totally random colors:
     #cl =   ['648AFF','000000','02E12D','DF3C1C','FFFF00','7E0112','9FFFFF',\
 #            'FFA200','268E00','DAFB14','A623B7','CA1F74','0000CD']
-    
+
     #Distinct different:
-#    cl=["FF0000", "00FF00", "0000FF", "FFFF00", "FF00FF", "00FFFF", "000000", 
-#        "800000", "008000", "000080", "808000", "800080", "008080", "808080", 
-#        "C00000", "00C000", "0000C0", "C0C000", "C000C0", "00C0C0", "C0C0C0", 
-#        "400000", "004000", "000040", "404000", "400040", "004040", "404040", 
-#        "200000", "002000", "000020", "202000", "200020", "002020", "202020", 
-#        "600000", "006000", "000060", "606000", "600060", "006060", "606060", 
-#        "A00000", "00A000", "0000A0", "A0A000", "A000A0", "00A0A0", "A0A0A0", 
+#    cl=["FF0000", "00FF00", "0000FF", "FFFF00", "FF00FF", "00FFFF", "000000",
+#        "800000", "008000", "000080", "808000", "800080", "008080", "808080",
+#        "C00000", "00C000", "0000C0", "C0C000", "C000C0", "00C0C0", "C0C0C0",
+#        "400000", "004000", "000040", "404000", "400040", "004040", "404040",
+#        "200000", "002000", "000020", "202000", "200020", "002020", "202020",
+#        "600000", "006000", "000060", "606000", "600060", "006060", "606060",
+#        "A00000", "00A000", "0000A0", "A0A000", "A000A0", "00A0A0", "A0A0A0",
 #        "E00000", "00E000", "0000E0", "E0E000", "E000E0", "00E0E0", "E0E0E0"]
-    
+
     #Color groups
 #    cl=['FFC500','A68000','FFFA00','A6A300','FF8B00',
 #        'A65A00','2419B2','352F85','100873','766FD5','',
 #        '','','','','','','','']
-    
+
 #    cl=['FF9000','A65E00','FFC273','FFC900','A68200','FFE173','FF2300',
 #        'A61700','FF8673','0095FF','0061A6','73C5FF']
-    
+
     cl     = ['FF9500','661400','FFCF00','5C7C00','FF2800',
               'BF123A','085EAB','01294C','006561','33CDC7']
 #    cl_n   = ['1921B1','009999','00BD39','95EC00']
@@ -261,7 +261,7 @@ def SSI_dur_curves_plotter(path, scenario, nb_lines=12, compare=1,
 #                  62,63,68,72,74,75,76,78,86,87,88,89,93,94,95,97]
 #    w_splitter = [2,3,10,14,20,23,27,32,40,45,50,67,73,81,85,96]
 
-    
+
     WWBU_mined_fn_e = path+'\\..\\_Forcing_Data\\WWBU\\WWBU_mined.dat'
     WWBU_mined_fn_s = path+'\\..\\_Forcing_Data\\WWBU\\SSI_splitter.dat'
     exclusions = np.loadtxt(WWBU_mined_fn_e, dtype=np.int)
@@ -286,7 +286,7 @@ def SSI_dur_curves_plotter(path, scenario, nb_lines=12, compare=1,
         if AR_SSI_WWB[0,i] <= 0:
            #print AR_SSI_WWB[0,i]
             pass
-        
+
         if AR_SSI_WWB[0,i] > 0 and i not in exclusions:
             print 'adding WWB unit lines', i, 'to figure.'
             ccnt += 1
@@ -313,7 +313,7 @@ def SSI_dur_curves_plotter(path, scenario, nb_lines=12, compare=1,
                 print ccnt
                 lines += ax1.plot(frqcy_n, SSI_descnd_n, ls=ls_n, color='#'+cl_n[ccnt], linewidth=1.5)
                 lines += ax1.plot(frqcy_i, SSI_descnd_i, ls=ls_i, color='#'+cl_i[ccnt], linewidth=1.5)
-                
+
             else:
                 SSI_descnd  = AR_SSI_WWB[:,i]
                 frqcy       = AR_FQC_WWB[:,i]
@@ -379,10 +379,10 @@ def SSI_dur_curves_plotter(path, scenario, nb_lines=12, compare=1,
                     fig_fn = path+'\\10\\N_vs_I_'+wwb_u_names+'SSI_Duration.png'
                 else:
                     fig_fn = path+'\\10\\'+scenario+'_'+wwb_u_names+'SSI_Duration.png'
-            
+
                 plt.savefig(fig_fn, dpi=200)
                 print 'figure', fig_fn, 'saved...'
-                
+
                 #___Now clear current figure and create new one..___#
                 cnt = -1
                 ccnt = -1
@@ -410,7 +410,7 @@ def plot_bars(path):
     stored in one seperate column. Each row contains the various water balance
     component. The different scenarios and units are specified below.
     '''
-    
+
     sn_m3 = 0     # Start row index for natural runs in m3.
     en_m3 = 13    # End  row index for natural runs in m3.
     sn_mm = 26    # Start row index for natural runs in mm.
@@ -419,35 +419,35 @@ def plot_bars(path):
     ei_m3 = 26    # End row index for impact runs in m3.
     si_mm = 39    # Start row index for impact runs in mm.
     ei_mm = 52    # End row index for impact runs in  mm.
-    
+
     plt.rc('text', usetex=True)
     plt.rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':'8'})
-    
+
     AR_WWB_y_fn = path + 'AR_WWB_y'
     print '..Opening file:', AR_WWB_y_fn
-    
+
     ftype = np.float32
     cols  = 200
     rows  = 14*2*2
     xy    = (rows, cols)
-    
+
     AR_WWB_y    = np.fromfile(AR_WWB_y_fn, dtype=ftype).reshape(xy)
     print 'shape of AR_WWB_y:', AR_WWB_y.shape
-    
+
 #    coords = np.loadtxt(path+'Coords_Barplots.txt',delimiter=',',\
 #                        skiprows=1, usecols=(2,3))
 #    #print coords
 #    res    = 3.5
 
     path_out = path + '\\WWB_barplots\\'
-        
+
     ut.check_folder_exist(path_out)
-    
+
     WWBU_mined_fn_e = path+'\\..\\_Forcing_Data\\WWBU\\WWBU_mined.dat'
     exclusions = np.loadtxt(WWBU_mined_fn_e)
-    
+
     width  = 0.35
-    
+
     # HGM for New Largo:
 #    hgm    = ['','CVB','HS','CVB','HS','HS','HS','HS','CVB','HS','CVB','HS',\
 #              'CVB','HS','HS','CVB','CVB','CVB','HS','HS','HS','CVB','HS','HS',\
@@ -458,14 +458,14 @@ def plot_bars(path):
 #              'HS','HS','CVB','HS','HS','CVB','HS','HS','HS','HS','HS','HS',\
 #              'HS','HS','HS','CVB','HS','HS','CVB','HS','HS','HS','PAN','HS',\
 #              'CVB','CVB']
-    
+
     # HGM input changed to read it in as text file
-    
+
     HGM_fn = path+'\\..\\_Forcing_Data\\WWBU\\HGM.dat'
     with open(HGM_fn, 'r') as f:
         hgm = f.read().splitlines()
-    
-    
+
+
     co     = ['#0090FF','#D4471E','#BF9A30','#F2D88F','#40BD18','#94E77A','#004DFF','#00174D']
     #co     = ['#3515B0','#FF8B00','#FF2800','#B4F200','#086CA2','#FFD100','#BE008A','#00BB3F']
     #xl     = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i','j','k','l','m']
@@ -509,7 +509,7 @@ def plot_bars(path):
             i_m3[i_m3<0] = 0.
             n_mm[n_mm<0] = 0.
             i_mm[i_mm<0] = 0.
-            
+
             n_m3[n_m3==0.] = 0.001
             i_m3[i_m3==0.] = 0.001
             n_mm[n_mm==0.] = 0.001
@@ -520,7 +520,7 @@ def plot_bars(path):
             #barplot_mm(x0, n_mm, i_mm, width, xl, co, w, path_out, hgm[w])
 
             barplot_mm_small(x0, n_mm, i_mm, width, xl, co, w, path_out, hgm[w])
-            
+
 #            fn_wdf = path_out+'\\TIF\\sWWB_unit_'+str(w)+'.tfw'
 
 #            create_world_file(coords[w_idx][0], coords[w_idx][1], res, fn_wdf)
@@ -529,25 +529,25 @@ def plot_bars(path):
 
 
 def barplot_mm(x0,a,b,width,xl,color,w,path_out,hgm):
-    
+
     fig, ax = plt.subplots()
-    
+
     fig_x, fig_y = 2.8, 2.8
     fig_p   = plt.gcf()
     fig_p.set_size_inches(fig_x, fig_y)
-    
+
     bar_n_mm = ax.bar(x0,       a, width, color=color)
     bar_i_mm = ax.bar(x0+width, b, width, color=color, hatch='/')
     bar_f2   = ax.bar(0, 0, 0, color='w', hatch='/')
     bar_f3   = ax.bar(0, 0, 0, color='w', edgecolor='w', lw=0)
-    
+
     ax.set_ylabel(r'$\mathbf{Wetland~Water~Balance~(mm)}$')
     ax.set_title(r'$\mathbf{Unit~%s}$' %str(w))
     ax.set_xticks(x0+width)
     ax.set_xticklabels(xl)
-    
+
     #ax.legend((bar_n_mm[0], bar_i_mm[0]), ('a', 'b'))
-    
+
     fig_fn = path_out+'WWB_unit_'+str(w)+'.png'
     s = plt.savefig(fig_fn, dpi=150)
 
@@ -555,28 +555,28 @@ def barplot_mm(x0,a,b,width,xl,color,w,path_out,hgm):
 
 
 def barplot_mm_small(x0, a, b, width, xl, color, w, path_out, hgm):
-    
+
     fig, ax = plt.subplots()
-    
+
     fig_x, fig_y = 4, 2.7
     fig_p   = plt.gcf()
     fig_p.set_size_inches(fig_x, fig_y)
-    
+
     #fig.subplots_adjust(left=0.085, right = 0.97, bottom = 0.14, top = 0.97)
     bar_n_mm = ax.bar(x0,       a, width, color=color)
     bar_i_mm = ax.bar(x0+width, b, width, color=color, hatch='/')
     bar_f1   = ax.bar(0, 0, 0, color='w')
     bar_f2   = ax.bar(0, 0, 0, color='w', hatch='/')
     bar_f3   = ax.bar(0, 0, 0, color='w', edgecolor='w', lw=0)
-    
+
     ax.set_ylabel(r'$\mathbf{Annual~WWB~Components~(mm)}$')
 #    ax.set_title(r'$\mathbf{Unit~%s}$' %str(w))
-    
+
     # New largo:
     # 8000 for VB's
     # 4000 for HS's
-    
-    if hgm == 'HS':        
+
+    if hgm == 'HS':
         ax.set_ylim(0,2000)
     elif hgm == 'CVB' or hgm == 'UVB':
         ax.set_ylim(0,5000)
@@ -589,14 +589,14 @@ def barplot_mm_small(x0, a, b, width, xl, color, w, path_out, hgm):
         yticklabels.append(r'$\mathbf{%s}$' % int(iy))
     ax.set_yticklabels(yticklabels)
     ax.tick_params()
-    
+
 #    ax.text(.5,0.93,r'$\mathbf{Unit~%s}$' %str(w), horizontalalignment='center',
 #            transform=ax.transAxes, fontsize=8,
 #            bbox=dict(facecolor='w',alpha=0.5))
-    
+
     ll,rr,bb,tt = 0.14, 0.97, 0.07, 0.97
     fig.subplots_adjust(left=ll, right=rr, bottom=bb, top=tt)
-    
+
 #    axx = plt.gca()
 #    wxt = axx.get_window_extent()
     #print wxt.width
@@ -610,7 +610,7 @@ def barplot_mm_small(x0, a, b, width, xl, color, w, path_out, hgm):
         i_label = r'$\mathbf{Lost}$'
     n_label = r'$\mathbf{Unimpacted}$'
     title   = r'$\mathbf{%s~Unit~%s}$' %(hgm, str(w))
-    
+
     if hgm == 'HS':
         hgm_c = '#3EE400'
     elif hgm == 'CVB' or hgm == 'UVB':
@@ -619,17 +619,17 @@ def barplot_mm_small(x0, a, b, width, xl, color, w, path_out, hgm):
         hgm_c = '#00C7FF'
     else:
         hgm_c = 'k'
-    
+
     legend = ax.legend((bar_f1[0], bar_f2[0]),(n_label, i_label),fancybox=True,
                        title=title, bbox_to_anchor=(0.47,0.97))
     # bbox can be a BboxBase instance, a tuple of [left, bottom, width, height]
     # in the given transform (normalized axes coordinate if None), or a tuple of
     # [left, bottom] where the width and height will be assumed to be zero
-    
+
     plt.setp(legend.get_title(),fontsize='10',color=hgm_c)
     leg = ax.get_legend()
     leg.get_frame().set_alpha(0.75)
-    
+
     # for AMF where one graph is peking 12K mm of Qo
     def autolabel(rects):
     # attach some text labels
@@ -646,7 +646,7 @@ def barplot_mm_small(x0, a, b, width, xl, color, w, path_out, hgm):
                         bbox=dict(boxstyle='rarrow,pad=0.1',lw=0.5,
                                   fc='w',alpha=0.7,ec='gray'))
     autolabel(bar_n_mm)
-    
+
     autoAxis = ax.axis()
     #print 'autoAxis', autoAxis
     wwt_m = autoAxis[1]-autoAxis[0]
@@ -659,10 +659,10 @@ def barplot_mm_small(x0, a, b, width, xl, color, w, path_out, hgm):
                                 fill=False,lw=1.5)
     rec = ax.add_patch(rec)
     rec.set_clip_on(False)
-    
+
     # to find out which file formats for savefig are supported:
     #print plt.gcf().canvas.get_supported_filetypes_grouped()
-    
+
     fig_fn = path_out+'sWWB_unit_'+str(w)+'.png'
     s = plt.savefig(fig_fn, dpi=300)
 
@@ -672,7 +672,7 @@ def barplot_mm_small(x0, a, b, width, xl, color, w, path_out, hgm):
 
 
 def create_world_file(x, y, res, fn_wdf):
-    
+
     "Write a world file for each image for automated georeferencing of the\
     bar plots."
     '''
@@ -682,15 +682,15 @@ def create_world_file(x, y, res, fn_wdf):
     Line 4: E: pixel size in the y-direction in map units, almost always negative[3]
     Line 5: C: x-coordinate of the center of the upper left pixel
     Line 6: F: y-coordinate of the center of the upper left pixel
-    '''    
-    
+    '''
+
 #    a_out = np.zeros((1,6))
     lines = [res,0,-0,res*-1,int(x),int(y)]
     #frmts = ['%0.2f %i %i %0.2f %i %i']
     frmts = '%0.2f'
     print type(lines)
     print lines
-    
+
     print type(frmts)
     print frmts
 
@@ -698,12 +698,3 @@ def create_world_file(x, y, res, fn_wdf):
 #        a_out[0,l] = lines[l]
 
     np.savetxt(fn_wdf,lines,fmt=frmts)
-
-
-
-
-
-
-
-
-
