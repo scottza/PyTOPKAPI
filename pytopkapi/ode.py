@@ -8,6 +8,7 @@ from copy import *
 from math import *
 from scipy import *
 from numpy import *
+from scipy.integrate import ode
 
 
 ###=======================================###
@@ -19,6 +20,9 @@ def input_zero_solution(b, alpha, V0, delta_t):
     if V0 > 0:
         V1 = (V0**(1-alpha) + b*(alpha-1)*delta_t)**(1/(1-alpha))
     elif V0 < 0:
+        print 'b:', b
+        print 'alpha:', alpha
+        print 'V0:', V0
         raise ValueError('Volume in cell store cannot be negative')
     else:
         # V0 must be zero and cannot be raised to the negative
@@ -208,7 +212,7 @@ class RKF:
 ###       QUASI ANALYTICAL SOLUTION       ###
 ###=======================================###
 
-def qas(a, b, alpha, V0, delta_t,derivative=0):
+def qas(a, b, alpha, V0, delta_t, cell, derivative=0):
     """
     Quasi-analytical solution for volume in a TOPKAPI water store
 
@@ -242,7 +246,7 @@ def qas(a, b, alpha, V0, delta_t,derivative=0):
         the function fails, returns `None`.
 
     """
-    if V0 == 0.0:
+    if V0 == 0.0 or V0 < 1e-40:
         # The quasi-analytical solution will fail in this
         # case.
         return None
@@ -257,9 +261,14 @@ def qas(a, b, alpha, V0, delta_t,derivative=0):
         y0=V0
         a_eq=a
         b_eq=b
-
-    if (y0+delta_t*a_eq)**(exposant-1) - y0**(exposant-1) == 0.0:
-        return None
+    try:
+        if (y0+delta_t*a_eq)**(exposant-1) - y0**(exposant-1) == 0.0:
+            return None
+    except RuntimeWarning:
+        print 'cell:', cell
+        print 'y0, delta_t, a_eq, exposant:', y0, delta_t, a_eq, exposant
+        print 'V0, alpha, a_eq, b_eq:', V0, alpha, a_eq, b_eq
+        raise ValueError('ya bad luck ha!')
 
     #   Definition of the variables alpha0 and beta0
     #   that approximate y**(exposant-1)=alpha0+beta0*y
@@ -278,13 +287,28 @@ def qas(a, b, alpha, V0, delta_t,derivative=0):
         A=-b*beta0
         B=alpha0/beta0
         C=-a/(b*beta0)
-
+    
     y1=solution(A,B,C,y0,delta_t)
 
-    if alpha > 2:
-        V1=y1**(1/(1-alpha))
-    else:
-        V1=y1
+    try:
+        if alpha > 2:
+            
+            V1=y1**(1/(1-alpha))
+        else:
+            V1=y1
+    except RuntimeWarning:
+        print '___________RUNTIME WARNING____________'
+        print 'cell:', cell
+        print 'a:', a
+        print 'b:', b
+        print 'alpha:', alpha
+        print 'V0:', V0
+        print 'y1**(1/(1-alpha))'
+        print 'y1, alpha:', y1, alpha
+        print '___________RUNTIME WARNING____________'
+        print 'A,B,C,y0,delta_t', A,B,C,y0,delta_t
+#        raise ValueError('ya bad luck ha!')
+        return None
 
     if (V1 - V0)/delta_t > a:
         return None
@@ -294,7 +318,7 @@ def qas(a, b, alpha, V0, delta_t,derivative=0):
 def adjust_2points_line(a_eq,b_eq,exposant,y0,delta_t):
     #Definition of the variables alpha0 and beta0
     #that approximate y**(exposant-1)=alpha0+beta0*y
-    f=storage_eq(a_eq,b_eq,exposant)
+    #f=storage_eq(a_eq,b_eq,exposant)
     y1_estimat=y0+delta_t*a_eq #-->OK 1.
     beta0=(y1_estimat**(exposant-1)-y0**(exposant-1))/(y1_estimat-y0)
     alpha0=y0**(exposant-1)-beta0*y0
@@ -307,7 +331,7 @@ def solution(A,B,C,y0,delta_t):
         /(1-((y0-p1)/(y0-p2)*exp(A*delta_t*(p1-p2))))
     return y1
 
-def solve_storage_eq(I, b, alpha, Vt0, Dt, solve_method=1):
+def solve_storage_eq(cell, I, b, alpha, Vt0, Dt, solve_method=1):
     """
     Compute the final volume in a TOPKAPI water store for one time-step
 
@@ -342,6 +366,12 @@ def solve_storage_eq(I, b, alpha, Vt0, Dt, solve_method=1):
         The estimated volume at the end of the current time-step.
 
     """
+    if isinf(Vt0):
+        print '______________________cell:',cell,'_____________________________'
+        print 'Vt0 =', Vt0
+        print '______________________________________________________'
+        print 'I, b, alpha, Vt0, Dt, solve_method', I,b,alpha,Vt0,Dt,solve_method
+
     # To-do: Find better way to test for float equality to zero..
     if I == 0.0:
         Vt1 = input_zero_solution(b, alpha, Vt0, Dt)
@@ -354,26 +384,30 @@ def solve_storage_eq(I, b, alpha, Vt0, Dt, solve_method=1):
         Vt1 = coefb_zero_solution(I, Vt0, Dt)
     else:
         if solve_method == 1:
-            Vt1 = qas(I, b, alpha, Vt0, Dt)
+            Vt1 = qas(I, b, alpha, Vt0, Dt, cell)
 
             if Vt1 == None:
                 solve_method = 0
 
         if solve_method == 0:
             #Definition of the convergence error
-            if Vt0 > 0.:
-                err_min = 1e-7/100.0*Vt0
-                err_max = 10e-3/100.0*Vt0
-            else:
-                err_min = 1e-7; err_max = 1e-3
+#            if Vt0 > 0.:
+#                err_min = 1e-7/100.0*Vt0
+#                err_max = 10e-3/100.0*Vt0
+#            else:
+#                err_min = 1e-7; err_max = 1e-3
+            #backend = 'vode'
+            backend = 'dopri5'
+            #backend = 'dop853'
+            solver = ode(storage_eq2).set_integrator(backend)
+            solver.set_initial_value(Vt0, 10e-10).set_f_params(I, b, alpha)
 
-            #RKF
-            f = storage_eq(I, b, alpha)
-
-            solver = RKF(min_step = 10e-10, max_step = Dt,
-                         min_tol = err_min, max_tol = err_max,
-                         init_time_step = Dt)
-
-            Vt1 = solver.step(f, Vt0, 0, Dt)
+            while solver.successful() and solver.t < Dt:
+                solver.integrate(Dt, step=True)
+                Vt1 = solver.y
 
     return Vt1
+
+
+def storage_eq2(t, y, I, b, alpha):
+    return I - b * y ** alpha

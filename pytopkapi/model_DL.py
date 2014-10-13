@@ -27,7 +27,7 @@ import exceptions
 warnings.filterwarnings('error', message='invalid value encountered in \
 double_scalars', category=exceptions.RuntimeWarning)
 
-def run(ini_file='TOPKAPI.ini'):
+def run_DL(ini_file='TOPKAPI.ini'):
     """Run the model with the set-up defined by `ini_file`.
 
     """
@@ -64,11 +64,14 @@ def run(ini_file='TOPKAPI.ini'):
     group_name = config.get('groups', 'group_name')
 
     ##~~~~~~ Calibration ~~~~~~##
-    fac_L    = config.getfloat('calib_params', 'fac_L')
-    fac_Ks   = config.getfloat('calib_params', 'fac_Ks')
-    fac_n_o  = config.getfloat('calib_params', 'fac_n_o')
-    fac_n_c  = config.getfloat('calib_params', 'fac_n_c')
-    fac_th_s = config.getfloat('calib_params', 'fac_th_s')
+    fac_L     = config.getfloat('calib_params', 'fac_L')
+    fac_L_    = config.getfloat('calib_params', 'fac_L_II')
+    fac_Ks    = config.getfloat('calib_params', 'fac_Ks')
+    fac_Ks_   = config.getfloat('calib_params', 'fac_Ks_II')
+    fac_n_o   = config.getfloat('calib_params', 'fac_n_o')
+    fac_n_c   = config.getfloat('calib_params', 'fac_n_c')
+    fac_th_s  = config.getfloat('calib_params', 'fac_th_s')
+    fac_th_s_ = config.getfloat('calib_params', 'fac_th_s_II')
     
     ##~~~~~~ Starting time ~~~~~~~~##
     try:
@@ -209,7 +212,11 @@ In order to maintain backwards compatability the ET option was set to \
     ar_n_o0, ar_n_c0, \
     ar_cell_down, ar_pVs_t0, \
     ar_Vo_t0, ar_Qc_t0, \
-    ar_kc, psi_b, lamda = pm.read_cell_parameters(file_cell_param)
+    ar_kc, psi_b, lamda,\
+    ar_L0_, ar_Ks0_, ar_theta_r_, \
+    ar_theta_s0_, ar_pVs_t0_, psi_b_,\
+    lamda_ = pm.read_cell_parameters_DL(file_cell_param)
+    
 
     #~~~~Number of cell in the catchment
     nb_cell = len(ar_cell_label)
@@ -224,11 +231,14 @@ In order to maintain backwards compatability the ET option was set to \
     ar_A_drained = pm.drained_area(ar_label_sort, li_cell_up, X)
 
     #~~~~Apply calibration factors to the parameter values
-    ar_L = ar_L0*fac_L
-    ar_Ks = ar_Ks0*fac_Ks
-    ar_n_o = ar_n_o0*fac_n_o
-    ar_n_c = ar_n_c0*fac_n_c
-    ar_theta_s = ar_theta_s0 * fac_th_s
+    ar_L        = ar_L0*fac_L
+    ar_L_       = ar_L0_*fac_L_
+    ar_Ks       = ar_Ks0*fac_Ks
+    ar_Ks_      = ar_Ks0_*fac_Ks_
+    ar_n_o      = ar_n_o0*fac_n_o
+    ar_n_c      = ar_n_c0*fac_n_c
+    ar_theta_s  = ar_theta_s0 * fac_th_s
+    ar_theta_s_ = ar_theta_s0_ * fac_th_s_
 
 
 #    print 'Max L=', max(ar_L)
@@ -254,14 +264,13 @@ contain a valid value range.'
 
 
     #~~~~Computation of model parameters from physical parameters
-    ar_Vsm, ar_b_s, ar_b_o, \
-    ar_W, ar_b_c = pm.compute_cell_param(X, ar_Xc, Dt, alpha_s,
-                                         alpha_o, alpha_c, nb_cell,
-                                         A_thres, W_max, W_min,
-                                         ar_lambda, ar_tan_beta,
-                                         ar_tan_beta_channel, ar_L,
-                                         ar_Ks, ar_theta_r, ar_theta_s,
-                                         ar_n_o, ar_n_c, ar_A_drained)
+    ar_Vsm, ar_b_s, ar_b_o, ar_W, ar_b_c, ar_Vsm_, ar_b_s_ \
+    = pm.compute_cell_param_DL(X, ar_Xc, Dt, alpha_s, alpha_o, alpha_c,
+                               nb_cell, A_thres, W_max, W_min, ar_lambda,
+                               ar_tan_beta, ar_tan_beta_channel, ar_L, ar_Ks,
+                               ar_theta_r, ar_theta_s, ar_n_o, ar_n_c,
+                               ar_A_drained, ar_L_, ar_Ks_, ar_theta_r_,
+                               ar_theta_s_)
 
     #~~~~Look for the cell of external_flow tunnel
     if external_flow:
@@ -294,8 +303,9 @@ contain a valid value range.'
         # read from file
         h5file_in = h5.openFile(file_out, mode='r')
 
-        node = h5file_in.getNode('/Soil/V_s')
-        ar_Vs0 = node.read()[-1, :]
+        node         = h5file_in.getNode('/Soil/V_s')
+        ar_Vs0       = node.read()[-1, :]
+        ar_Vs0_      = node.read()[-1, :]
         ar_Vs0_scott = ar_Vs0
 
         node = h5file_in.getNode('/Overland/V_o')
@@ -308,10 +318,11 @@ contain a valid value range.'
         h5file_in.close()
     else:
         print 'Initializing from parms...'
-        ar_Vs0 = fl.initial_volume_soil(ar_pVs_t0, ar_Vsm)
-        ar_Vo0 = ar_Vo_t0
-        ar_Vc0 = fl.initial_volume_channel(ar_Qc_t0, ar_W, X, ar_n_c)
-        ar_Vd0 = np.ones(nb_cell)*ar_wwb*WL_dam_avg*Dams_ini*1e-2
+        ar_Vs0  = fl.initial_volume_soil(ar_pVs_t0, ar_Vsm)
+        ar_Vs0_ = fl.initial_volume_soil(ar_pVs_t0_, ar_Vsm_)
+        ar_Vo0  = ar_Vo_t0
+        ar_Vc0  = fl.initial_volume_channel(ar_Qc_t0, ar_W, X, ar_n_c)
+        ar_Vd0  = np.ones(nb_cell)*ar_wwb*WL_dam_avg*Dams_ini*1e-2
         
         ar_Vs0_scott = ar_Vs0
         ar_Vo0_scott = ar_Vo0
@@ -319,25 +330,29 @@ contain a valid value range.'
 
     ## Computed variables
     #Matrix of soil,overland and channel store at the end of the time step
-    ar_Vs1 = np.ones(nb_cell)*-99.9
+    ar_Vs1       = np.ones(nb_cell)*-99.9
+    ar_Vs1_      = np.ones(nb_cell)*-99.9
     ar_Vs1_scott = np.ones(nb_cell)*-99.9
-    ar_Vo1 = np.ones(nb_cell)*-99.9
+    ar_Vo1       = np.ones(nb_cell)*-99.9
     ar_Vo1_scott = np.ones(nb_cell)*-99.9
-    ar_Vc1 = np.ones(nb_cell)*-99.9
-    ar_Vd1 = np.ones(nb_cell)*-99.9
+    ar_Vc1       = np.ones(nb_cell)*-99.9
+    ar_Vd1       = np.ones(nb_cell)*-99.9
 
     #Matrix of outflows between two time steps
-    ar_Qs_out = np.ones(nb_cell)*-99.9
-    ar_Qo_out = np.ones(nb_cell)*-99.9
-    ar_Qc_out = np.zeros(nb_cell)
-    ar_Qd_inp = np.ones(nb_cell)*-99.9
-    ar_Qd_out = np.ones(nb_cell)*-99.9
+    ar_Qs_out  = np.ones(nb_cell)*-99.9
+    ar_Qs_out_ = np.ones(nb_cell)*-99.9
+    ar_Qo_out  = np.ones(nb_cell)*-99.9
+    ar_Qc_out  = np.zeros(nb_cell)
+    ar_Qd_inp  = np.ones(nb_cell)*-99.9
+    ar_Qd_out  = np.ones(nb_cell)*-99.9
 
     ## Intermediate variables
     ar_a_s              = np.ones(nb_cell)*-99.9
+    ar_a_s_             = np.ones(nb_cell)*-99.9
     ar_a_o              = np.ones(nb_cell)*-99.9
     ar_a_c              = np.ones(nb_cell)*-99.9
     ar_Q_to_next_cell   = np.ones(nb_cell)*-99.9
+    ar_Q_to_next_cell_  = np.ones(nb_cell)*-99.9
     ar_Q_to_channel     = np.ones(nb_cell)*-99.9
     ar_Q_to_channel_sub = np.zeros(nb_cell)
     ar_Qc_cell_up       = np.zeros(nb_cell)
@@ -371,6 +386,14 @@ contain a valid value range.'
                                            expectedrows=nb_time_step)
     else:
         array_Qs_out = h5file.getNode(grp_name+'/Qs_out')
+    
+    if grp_name+'/Qs_outII' not in h5file:
+        array_Qs_out_ = h5file.createEArray(grp_name, 'Qs_outII',
+                                           atom, shape=(0,nb_cell),
+                                           title='m3/s', filters=h5filter,
+                                           expectedrows=nb_time_step)
+    else:
+        array_Qs_out_ = h5file.getNode(grp_name+'/Qs_outII')
 
     if grp_name+'/V_s' not in h5file:
         array_Vs = h5file.createEArray(grp_name, 'V_s',
@@ -379,6 +402,14 @@ contain a valid value range.'
                                        expectedrows=nb_time_step+1)
     else:
         array_Vs = h5file.getNode(grp_name+'/V_s')
+    
+    if grp_name+'/V_sII' not in h5file:
+        array_Vs_ = h5file.createEArray(grp_name, 'V_sII',
+                                       atom, shape=(0, nb_cell),
+                                       title='m3', filters=h5filter,
+                                       expectedrows=nb_time_step+1)
+    else:
+        array_Vs_ = h5file.getNode(grp_name+'/V_sII')
     
     if grp_name+'/V_s_scott' not in h5file:
         array_Vs_scott = h5file.createEArray(grp_name, 'V_s_scott',
@@ -468,6 +499,14 @@ contain a valid value range.'
                                            expectedrows=nb_time_step)
     else:
         array_Q_down = h5file.getNode('/Q_down')
+    
+    if '/Q_downII' not in h5file:
+        array_Q_down_ = h5file.createEArray('/', 'Q_downII',
+                                           atom, shape=(0,nb_cell),
+                                           title='m3', filters=h5filter,
+                                           expectedrows=nb_time_step)
+    else:
+        array_Q_down_ = h5file.getNode('/Q_down__')
 
     if '/ETc' not in h5file:
         array_ETc = h5file.createEArray('/', 'ETc',
@@ -508,6 +547,8 @@ contain a valid value range.'
     if append_output is False or first_run is True:
         #Write the initial values into the output file
         array_Vs.append(ar_Vs0.reshape((1,nb_cell)))
+        array_Vs_.append(ar_Vs0_.reshape((1,nb_cell)))
+
         array_Vo.append(ar_Vo0.reshape((1,nb_cell)))
         
         array_Vs_scott.append(ar_Vs0_scott.reshape((1,nb_cell)))
@@ -517,12 +558,14 @@ contain a valid value range.'
         array_Vd.append(ar_Vd0.reshape((1,nb_cell)))
 
         array_Qs_out.append(ar_Qs_out.reshape((1,nb_cell)))
+        array_Qs_out_.append(ar_Qs_out_.reshape((1,nb_cell)))
         array_Qo_out.append(ar_Qo_out.reshape((1,nb_cell)))
         array_Qc_out.append(ar_Qc_out.reshape((1,nb_cell)))
         array_Qd_inp.append(ar_Qd_inp.reshape((1,nb_cell)))
         array_Qd_out.append(ar_Qd_out.reshape((1,nb_cell)))
 
-        array_Q_down.append(ar_Q_to_next_cell.reshape((1,nb_cell)))
+        array_Q_down.append( ar_Q_to_next_cell.reshape( (1,nb_cell)))
+        array_Q_down_.append(ar_Q_to_next_cell_.reshape((1,nb_cell)))
 
         array_ET_out.append(ar_ETa.reshape((1,nb_cell)))
         array_ET_out_scott.append(ar_ETa.reshape((1,nb_cell)))
@@ -532,7 +575,8 @@ contain a valid value range.'
         E_vol = ar_ET_channel*1e-3 * ar_W * ar_Xc
         array_Ec_out.append(E_vol.reshape((1,nb_cell)))
 
-    eff_theta = ar_theta_s - ar_theta_r
+    eff_theta  = ar_theta_s  - ar_theta_r
+    eff_theta_ = ar_theta_s_ - ar_theta_r_
     
     ar_d_t = np.zeros((nb_time_step))
     t_avg_nr = 10
@@ -571,19 +615,84 @@ contain a valid value range.'
 
         t_0 = dtm.datetime.now()
 
-        eff_sat = ar_Vs0/ar_Vsm
+        eff_sat  = ar_Vs0 /ar_Vsm
+        eff_sat_ = ar_Vs0_/ar_Vsm_
 
         # estimate soil suction head using Brookes and Corey (1964)
         # psi_b in mm and hence psi in mm too
-        psi = psi_b/np.power(eff_sat, 1.0/lamda)
+        psi  = psi_b /np.power(eff_sat , 1.0/lamda)
+        psi_ = psi_b_/np.power(eff_sat_, 1.0/lamda_)
 
         ## Loop on cells
         n=-1
         for cell1 in ar_label_sort:
             cell=np.where(ar_cell_label==cell1)[0][0]
             n=n+1
+#            print 'cell:', cell
 
+#==============================================================================
+#             Drainage from upper to lower soil layer
+#==============================================================================
+            # disconnectedness factor = 2*lamda + 2.5
+            ar_c = 2*lamda+2.5
+            # Pr_prim = preliminary percolation to deeper soil layer controlled
+            # by free drainage from the upper soil layer (m/s).
+            Pr_prim_rate = fl.perc_prim(ar_Vs0[cell],ar_Ks[cell]*1e-3,
+                                        eff_sat[cell], ar_c[cell])
 
+#==============================================================================
+#             Flow from uppter to lower soil layer
+#==============================================================================
+            # The flow is estimated using Green Ampt
+            # Convert Pr_prim (m/s) to (mm/s)
+#            print 'ar_Vs0[cell] ar_Ks[cell] eff_sat[cell] ar_c[cell]'
+#            print ar_Vs0[cell], ar_Ks[cell]*1e-3, eff_sat[cell], ar_c[cell]
+            
+            Pr_prim_rate = Pr_prim_rate*1e3
+#            print 'Pr_prim_rate (mm/s):', Pr_prim_rate
+            
+            infiltration_depth_ = green_ampt_cum_infiltration(Pr_prim_rate,
+                                                              psi_[cell],
+                                                              eff_theta_[cell],
+                                                              eff_sat_[cell],
+                                                              ar_Ks_[cell], Dt,
+                                                              cell, t)
+
+#            print 'infiltration_depth_', infiltration_depth_
+            # Check if infiltration_depth_ is negative
+            if infiltration_depth_ < 0:
+                print 'WARNING: Infiltration depth from the \
+green_ampt_cum_infiltration function has resulted a negative value: %0.2f mm.'\
+                %(infiltration_depth_)
+            
+            # Infiltration__excess should not be necessary
+#            infiltration__excess = Pr_prim_rate*1e-3 - infiltration_depth_/Dt
+            # m/s = m/s - m/s
+            
+            ## ============================ ##
+            ## ===== Lower SOIL STORE ===== ##
+            ## ============================ ##
+            
+            ar_a_s_[cell] = fl.input_soil(infiltration_depth_, Dt, X,
+                                         ar_Q_to_next_cell_, li_cell_up[cell])
+
+            Vs_prim_ = om.solve_storage_eq(cell, ar_a_s_[cell], ar_b_s_[cell],
+                                          alpha_s, ar_Vs0_[cell], Dt, solve_s)
+
+            ar_Qs_out_[cell], ar_Vs1_[cell] = fl.output_soil(ar_Vs0_[cell],
+                                                             Vs_prim_,
+                                                             ar_Vsm_[cell],
+                                                             ar_a_s_[cell],
+                                                             ar_b_s_[cell],
+                                                             alpha_s, Dt)
+
+            return_2_shallow = max(0, ar_a_s_[cell]                   \
+                               - ((ar_Vs1_[cell]-ar_Vs0_[cell])/Dt  \
+                               + ar_Qs_out_[cell]))
+#                               + infiltration__excess*X**2)    should not be necessary
+            
+            # Update Vs0 after drainage into second layer
+            ar_Vs0[cell] = ar_Vs0[cell] - infiltration_depth_*1e-3*X**2
             ## ======================== ##
             ## ===== INTERCEPTION ===== ##
             ## ======================== ##
@@ -596,7 +705,6 @@ contain a valid value range.'
                 rain_rate = ndar_rain[t, cell]/Dt
             else:
                 rain_rate = ndar_rain[t]/Dt
-
 
             infiltration_depth = green_ampt_cum_infiltration(rain_rate,
                                                              psi[cell],
@@ -616,10 +724,10 @@ green_ampt_cum_infiltration function has resulted a negative value: %0.2f mm.'\
             ## ====================== ##
             #~~~~ Computation of soil input
             # ar_a_s is the combination of P and O and Vs from upstream cells
-            ar_a_s[cell] = fl.input_soil(infiltration_depth,
-                                         Dt, X,
-                                         ar_Q_to_next_cell,
-                                         li_cell_up[cell])
+            ar_a_s[cell] = fl.input_soil_shallow(infiltration_depth, Dt, X,
+                                                 ar_Q_to_next_cell,
+                                                 li_cell_up[cell],
+                                                 return_2_shallow)
 
             #~~~~ Resolution of the equation dV/dt=a_s-b_s*V^alpha_s
             # Calculate the volume in the soil store at the end of the
@@ -705,13 +813,11 @@ green_ampt_cum_infiltration function has resulted a negative value: %0.2f mm.'\
                 print 'There is no catchment or river cell above the river \
 cell %i. To prevent crashing this cell will be treated as terrestrial.' %cell
             '''
-            ar_Q_to_next_cell[cell], \
-            ar_Q_to_channel[cell], \
-            ar_Q_to_channel_sub[cell] = fl.flow_partitioning(ar_lambda[cell],
-                                                             ar_Qs_out[cell],
-                                                             ar_Qo_out[cell],
-                                                             ar_W[cell],
-                                                             X, ar_Xc[cell])
+            ar_Q_to_next_cell[cell], ar_Q_to_next_cell_[cell],\
+            ar_Q_to_channel[cell], ar_Q_to_channel_sub[cell] \
+            = fl.flow_partitioning_DL(ar_lambda[cell], ar_Qs_out[cell],
+                                      ar_Qs_out[cell], ar_Qo_out[cell],
+                                      ar_W[cell], X, ar_Xc[cell])
 
             if ar_Q_to_channel[cell] < 0.:
                 print 'ar_Q_to_channel[cell]', ar_Q_to_channel[cell]
@@ -880,30 +986,34 @@ cell down...'
         ####===================================####
         #### Affectation of new vector values  ####
         ####===================================####
-        ar_Vs0 = np.array(ar_Vs1)
-        ar_Vo0 = np.array(ar_Vo1)
-        ar_Vc0 = np.array(ar_Vc1)
-        ar_Vd0 = np.array(ar_Vd1)
+        ar_Vs0  = np.array(ar_Vs1)
+        ar_Vs0_ = np.array(ar_Vs1_)
+        ar_Vo0  = np.array(ar_Vo1)
+        ar_Vc0  = np.array(ar_Vc1)
+        ar_Vd0  = np.array(ar_Vd1)
         ar_Vs0_scott = np.array(ar_Vs1_scott)
         ar_Vo0_scott = np.array(ar_Vo1_scott)
 
         ####===================================####
         #### Results writing at each time step ####
         ####===================================####
-        array_Vs.append(ar_Vs1.reshape((1,nb_cell))) # Volume soil store
+        array_Vs.append( ar_Vs1.reshape( (1,nb_cell))) # Volume soil store
+        array_Vs_.append(ar_Vs1_.reshape((1,nb_cell))) # Volume soil in 2nd layer
         array_Vo.append(ar_Vo1.reshape((1,nb_cell))) # Volume overland store
         array_Vc.append(ar_Vc1.reshape((1,nb_cell))) # Volume in Channel
         array_Vd.append(ar_Vd1.reshape((1,nb_cell))) # Volume in Dam
         array_Vs_scott.append(ar_Vs1_scott.reshape((1,nb_cell))) # Volume soil store
         array_Vo_scott.append(ar_Vo1_scott.reshape((1,nb_cell))) # Volume overland s
         
-        array_Qs_out.append(ar_Qs_out.reshape((1,nb_cell)))
+        array_Qs_out.append( ar_Qs_out.reshape( (1,nb_cell)))
+        array_Qs_out_.append(ar_Qs_out_.reshape((1,nb_cell)))
         array_Qo_out.append(ar_Qo_out.reshape((1,nb_cell)))
         array_Qc_out.append(ar_Qc_out.reshape((1,nb_cell))) # channel outflow m3/s
         array_Qd_inp.append(ar_Qd_inp.reshape((1,nb_cell))) # dam input from channel
         array_Qd_out.append(ar_Qd_out.reshape((1,nb_cell))) # dam out to channel
 
-        array_Q_down.append(ar_Q_to_next_cell.reshape((1,nb_cell)))
+        array_Q_down.append( ar_Q_to_next_cell.reshape( (1,nb_cell)))
+        array_Q_down_.append(ar_Q_to_next_cell_.reshape((1,nb_cell)))
 
         array_ET_out.append(ar_ETa.reshape((1,nb_cell)))
         array_ET_out_scott.append(ar_ETa_scott.reshape((1,nb_cell)))

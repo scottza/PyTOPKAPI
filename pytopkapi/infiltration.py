@@ -43,6 +43,7 @@ def _green_ampt_infiltration_rate(F, psi, eff_theta, eff_sat, K):
 
     """
     if F <= 0:
+        print 'The cumulative infiltration depth \'F\' is', F
         raise ValueError('F must be greater than zero.')
 
     dtheta = (1 - eff_sat)*eff_theta
@@ -50,7 +51,7 @@ def _green_ampt_infiltration_rate(F, psi, eff_theta, eff_sat, K):
     return K*((psi*dtheta)/F + 1)
 
 def green_ampt_cum_infiltration(rain, psi, eff_theta,
-                                eff_sat, K, dt, F_t0=0.0):
+                                eff_sat, K, dt, cell, t, F_t0=0.0):
     """Compute the Green-Ampt cumulative infiltration
 
     Compute the Green-Ampt cumulative infiltration depth for a given
@@ -60,20 +61,20 @@ def green_ampt_cum_infiltration(rain, psi, eff_theta,
     ----------
     rain : scalar
         The constant rainfall rate during the current time interval of
-        length `dt`
+        length `dt` (mm/s).
     psi : scalar
-        Soil suction head at wetting front.
+        Soil suction head at wetting front (mm).
     eff_theta : scalar
         Effective porosity.
     eff_sat : scalar
         Effective saturation.
     K : scalar
-        Saturated hydraulic conductivity.
+        Saturated hydraulic conductivity (mm/s).
     dt : scalar
-        Length of the time-step
+        Length of the time-step (s).
     F_t0 : scalar
         The cumulative infiltration depth at the beginning of the
-        current interval. Default value is zero.
+        current interval. Default value is zero (mm).
 
     Returns
     -------
@@ -110,6 +111,7 @@ def green_ampt_cum_infiltration(rain, psi, eff_theta,
             F_t1 = soln[0]
 
             if ierr != 1:
+                print 'F_t0, psi, dtheta, K, dt:', F_t0, psi, dtheta, K, dt
                 raise ValueError(mesg)
         else:
             # check whether ponding occurs during interval
@@ -145,6 +147,27 @@ def green_ampt_cum_infiltration(rain, psi, eff_theta,
                     F_t1 = soln[0]
 
                     if ierr != 1:
+                        print 'cell, t, rain, F, Fp, psi, dtheta, K, dtp\n',\
+                               cell,',', t,',', rain,',', F,',', Fp,',', psi,',', dtheta,',', K, dtp
+                        print 'eff_sat, eff_theta, F_t0, F_t1, Fprime,\n',\
+                        eff_sat, eff_theta, F_t0, F_t1, Fprime
+                        print 'soln, infodict, ierr\n',\
+                               soln, infodict, ierr
                         raise ValueError(mesg)
-
+                    if F_t1 < 0:
+                        F0 = 0.
+                        soln, infodict, ierr, mesg = fsolve(_green_ampt_cum_eq,
+                                                            F0, args=(Fp, psi,
+                                                            dtheta, K, dtp),
+                                                            full_output=True)
+                        F_t1 = soln[0]
+    if F_t1 < 0:
+        print 'WARNING Infiltration module: Infiltration depth F_t1 %0.2f is \
+negative' %(F_t1)
+        print 'cell, t, rain, F, Fp, psi, dtheta, K, dtp\n',\
+        cell,',', t,',', rain,',', F,',', Fp,',', psi,',', dtheta,',', K,',', dtp
+        print 'eff_sat, eff_theta, F_t0, F_t1, Fprime\n',\
+        eff_sat,',', eff_theta,',', F_t0,',', F_t1,',', Fprime
+        print 'soln, infodict, ierr\n',\
+        soln,',', infodict,',', ierr
     return F_t1

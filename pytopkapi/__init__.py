@@ -17,6 +17,8 @@ except ImportError:
     from __version import git_revision as __git_revision__
 
 import model
+import model_DL
 from model import *
+from model_DL import *
 import results_analysis
 from results_analysis import *
